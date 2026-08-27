@@ -382,3 +382,12 @@ Thinking about a PR? Read [CONTRIBUTING.md](CONTRIBUTING.md) first - it explains
 ## License
 
 MIT
+
+## 参考文献
+
+本项目（fork 自 MadsLorentzen/ai-job-search）的能力设计参考了以下资源：
+
+| 参考 | 网址 | 参考内容 |
+|---|---|---|
+| **ai-job-search（上游原版）** | https://github.com/MadsLorentzen/ai-job-search | Claude Code 求职框架（setup/scrape/apply/rank/interview 工作流） |
+| **medical-resume-agent** | https://github.com/Golden2002/medical-resume-agent | 事实校验-经历拆解-定向表达方法论（产品化参考） |
