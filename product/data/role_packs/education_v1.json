@@ -1,0 +1,68 @@
+{
+  "role_pack": "education_v1",
+  "label": "教育/培训",
+  "priorities": [
+    "communication",
+    "execution",
+    "creativity",
+    "domain_expertise"
+  ],
+  "value_mappings": {
+    "communication": [
+      "教学表达与反馈",
+      "核心能力"
+    ],
+    "execution": [
+      "课程落地与迭代",
+      "相关经历首条"
+    ],
+    "creativity": [
+      "课程设计与创新",
+      "核心能力"
+    ],
+    "domain_expertise": [
+      "学科专业",
+      "相关经历"
+    ]
+  },
+  "preferred_actions": [
+    "designed",
+    "taught",
+    "mentored",
+    "developed",
+    "improved",
+    "assessed"
+  ],
+  "allowed_verbs": [
+    "设计",
+    "教授",
+    "辅导",
+    "开发",
+    "改进",
+    "评估"
+  ],
+  "restricted_verbs": [
+    "参与",
+    "协助"
+  ],
+  "forbidden_claims": [
+    "保证全部学员达标",
+    "独立负责全部课程"
+  ],
+  "required_evidence": {
+    "owned_component": [
+      "specific_task",
+      "deliverable"
+    ],
+    "led_delivery": [
+      "execution_evidence",
+      "completion_evidence"
+    ]
+  },
+  "sentence_patterns": [
+    "设计{课程}，覆盖{audience}，{outcome}",
+    "教授{subject}，{value}",
+    "改进{module}，{metric}"
+  ],
+  "evaluation_cases": []
+}

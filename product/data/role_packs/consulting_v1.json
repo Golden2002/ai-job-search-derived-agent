@@ -1,0 +1,69 @@
+{
+  "role_pack": "consulting_v1",
+  "label": "咨询/专业服务",
+  "priorities": [
+    "analysis",
+    "communication",
+    "leadership",
+    "project_management"
+  ],
+  "value_mappings": {
+    "analysis": [
+      "问题拆解与数据分析",
+      "核心能力 + 项目经历首条"
+    ],
+    "communication": [
+      "客户沟通与汇报",
+      "核心能力"
+    ],
+    "leadership": [
+      "团队协作与影响",
+      "项目经历"
+    ],
+    "project_management": [
+      "项目交付与管理",
+      "相关经历首条"
+    ]
+  },
+  "preferred_actions": [
+    "analyzed",
+    "advised",
+    "presented",
+    "led",
+    "structured",
+    "delivered"
+  ],
+  "allowed_verbs": [
+    "分析",
+    "建议",
+    "汇报",
+    "主导",
+    "梳理",
+    "交付"
+  ],
+  "restricted_verbs": [
+    "参与",
+    "协助",
+    "支持"
+  ],
+  "forbidden_claims": [
+    "独立负责全部项目",
+    "确保客户满意（无证据）"
+  ],
+  "required_evidence": {
+    "owned_component": [
+      "specific_task",
+      "deliverable"
+    ],
+    "led_delivery": [
+      "execution_evidence",
+      "completion_evidence"
+    ]
+  },
+  "sentence_patterns": [
+    "为{client}提供{service}，交付{deliverable}",
+    "主导{project}的{module}，{outcome}",
+    "分析{problem}，提出{recommendation}"
+  ],
+  "evaluation_cases": []
+}

@@ -1,0 +1,68 @@
+{
+  "role_pack": "finance_v1",
+  "label": "金融/财会",
+  "priorities": [
+    "analysis",
+    "execution",
+    "technical",
+    "project_management"
+  ],
+  "value_mappings": {
+    "analysis": [
+      "数据分析与风险评估",
+      "核心能力"
+    ],
+    "execution": [
+      "流程执行与合规",
+      "相关经历首条"
+    ],
+    "technical": [
+      "金融工具与建模",
+      "核心能力 + 项目经历"
+    ],
+    "project_management": [
+      "项目交付",
+      "相关经历"
+    ]
+  },
+  "preferred_actions": [
+    "modeled",
+    "analyzed",
+    "executed",
+    "reconciled",
+    "reported",
+    "audited"
+  ],
+  "allowed_verbs": [
+    "建模",
+    "分析",
+    "执行",
+    "对账",
+    "报告",
+    "审计"
+  ],
+  "restricted_verbs": [
+    "参与",
+    "协助"
+  ],
+  "forbidden_claims": [
+    "独立负责全部风控",
+    "确保合规（无证据）"
+  ],
+  "required_evidence": {
+    "owned_component": [
+      "specific_task",
+      "deliverable"
+    ],
+    "led_delivery": [
+      "execution_evidence",
+      "completion_evidence"
+    ]
+  },
+  "sentence_patterns": [
+    "对{asset}进行{analysis}，输出{report}",
+    "执行{process}，{outcome}",
+    "建立{model}，{value}"
+  ],
+  "evaluation_cases": []
+}
