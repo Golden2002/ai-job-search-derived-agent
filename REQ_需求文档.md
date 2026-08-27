@@ -152,6 +152,85 @@
 ### 目标循环
 每波次：测试 → 问题定位 → 方案优化 → 复测，直至达标。
 
+
+## 《通用简历工具产品化方案 v1.0》（2026-08-27）
+
+> 调研结论：深度拆解两基线（medical 30+ API 端点 + Role Pack 结构 + ai-job 11 命令双 Agent 流程）
+> + 竞品调研（Reactive-Resume/jsonresume 等简历生态）+ legalaiskill 525 skills 方法论。
+> Oracle Token 上限暂不可用——本方案基于充分调研 + 领域知识制定，待 Token 恢复后补 Oracle 复核。
+
+### 一、产品定位
+**通用简历制作 Agent**——面向普通求职者的"经历→简历"一站式工具：
+对话式收集经历 → 事实校验 → 定向表达（适配目标岗位）→ 多格式导出（HTML/PDF/LaTeX）→ 职位匹配建议。
+一句话：**把真实经历翻译成岗位听得懂的简历**。
+
+### 二、用户旅程（对齐 medical 渐进体验）
+```
+① 经历采集（对话式）：教育/实习/项目/技能 → 结构化事实卡（引用原文校验）
+② 定向表达：选目标岗位/方向 → Role Pack 适配（能力重排/动词优化/句式模板）
+③ 简历生成：多格式（HTML 预览/PDF 导出/LaTeX 专业版）+ ATS 校验
+④ 职位匹配：简历 × JD 匹配报告（确定性可复现）
+⑤ 申请跟踪：投递/面试/反馈记录
+```
+
+### 三、技术架构（复用基线，不重复造轮子）
+```
+┌─────────────────────────────────────────────┐
+│ 前端（网页产品）                              │
+│ 经历采集页 → 简历预览页 → 导出/匹配页         │
+└──────────────────┬──────────────────────────┘
+                   │ HTTP
+┌──────────────────▼──────────────────────────┐
+│ Flask API 层（复用 medical api.py 模式）      │
+│ /api/profile-drafts /api/resume-rewrites     │
+│ /api/role-packs /api/matches /api/export     │
+├─────────────────────────────────────────────┤
+│ 引擎层（复用 medical 核心）                    │
+│ ClaimGate（主张校验）→ ExperienceDraft →      │
+│ BulletComposer（定向表达）→ ResumeRewriter →   │
+│ Matcher（职位匹配）                            │
+├─────────────────────────────────────────────┤
+│ 渲染层（复用 ai-job LaTeX + medical HTML）    │
+│ HTML 预览 / PDF（Chrome/LaTeX）/ ATS 校验     │
+├─────────────────────────────────────────────┤
+│ MCP 层（PAEG 生态 ⭐）                        │
+│ 工具 schema + MCP server（stdio）→ PAEG 主    │
+│ Agent 调度                                    │
+└─────────────────────────────────────────────┘
+```
+
+### 四、通用化改造（医学 → 全行业）
+1. **能力词表通用化**：medical 的医学能力维度 → 通用能力维度
+   （communication/leadership/analysis/technical/project_management/domain_expertise）
+2. **Role Pack 模板化**：保留 Role Pack 结构（priorities/value_mappings/
+   preferred_actions/restricted_verbs/forbidden_claims/required_evidence/
+   sentence_patterns），新增通用行业包（tech/consulting/finance/education/marketing/operations）
+3. **场景**：实习/校招/社招/升学 4 类 + 全行业
+
+### 五、MCP 插件设计（PAEG 生态 ⭐）
+| 工具 | 功能 | inputs |
+|---|---|---|
+| generate_resume | 经历→简历（定向） | experiences, target_role, format |
+| enrich_experience | 经历→结构化事实卡 | raw_text, capability_tags |
+| match_job | 简历×JD匹配报告 | resume, jd |
+| list_role_packs | 可用角色包 | — |
+| validate_claim | 主张校验（引用原文） | claim, source_text |
+
+### 六、MVP 闭环（P0）
+1. 经历采集（对话式→事实卡）
+2. 定向表达（Role Pack 通用化：tech 等 3 个行业包）
+3. 简历生成（HTML + PDF 导出）
+4. MCP 插件（4 工具 schema + MCP server）
+5. 网页前端（采集→预览→导出）
+
+### 七、优先级
+- P0（MVP）：经历采集/定向表达/简历生成/HTML+PDF 导出/MCP 4 工具/网页前端
+- P1：职位匹配/申请跟踪/ATS 校验/LaTeX 导出/更多行业 Role Pack
+- P2：翻译/多语言/团队协作/模板市场
+
+### 八、部署
+复用 medical Dockerfile/render.yaml（Flask + gunicorn + Render 免费部署）+ cloudflared 本地隧道。
+
 ## 九、待办清单（需求文档累计）
 
 ### 已完成
