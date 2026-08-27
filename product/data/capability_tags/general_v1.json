@@ -1,0 +1,78 @@
+{
+  "version": "0.1",
+  "note": "通用能力维度（医学→全行业通用化）——复用 medical 的能力标签体系但去医学化",
+  "capability_groups": {
+    "communication": {
+      "zh": "沟通协作",
+      "en": "Communication",
+      "examples": [
+        "跨部门协调",
+        "客户沟通",
+        "团队协作"
+      ]
+    },
+    "leadership": {
+      "zh": "领导力",
+      "en": "Leadership",
+      "examples": [
+        "项目主导",
+        "团队管理",
+        "决策"
+      ]
+    },
+    "analysis": {
+      "zh": "分析与研究",
+      "en": "Analysis & Research",
+      "examples": [
+        "数据分析",
+        "问题诊断",
+        "方案设计"
+      ]
+    },
+    "technical": {
+      "zh": "技术能力",
+      "en": "Technical",
+      "examples": [
+        "编程",
+        "工具使用",
+        "技术实现"
+      ]
+    },
+    "project_management": {
+      "zh": "项目管理",
+      "en": "Project Management",
+      "examples": [
+        "进度管理",
+        "资源协调",
+        "交付"
+      ]
+    },
+    "domain_expertise": {
+      "zh": "领域专业",
+      "en": "Domain Expertise",
+      "examples": [
+        "行业知识",
+        "专业技能",
+        "领域经验"
+      ]
+    },
+    "execution": {
+      "zh": "执行落地",
+      "en": "Execution",
+      "examples": [
+        "落地实施",
+        "结果交付",
+        "优化改进"
+      ]
+    },
+    "creativity": {
+      "zh": "创新创造",
+      "en": "Creativity",
+      "examples": [
+        "创意方案",
+        "内容创作",
+        "产品创新"
+      ]
+    }
+  }
+}

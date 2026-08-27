@@ -1,0 +1,73 @@
+{
+  "role_pack": "tech_v1",
+  "label": "科技/互联网",
+  "priorities": [
+    "technical",
+    "project_management",
+    "analysis",
+    "execution"
+  ],
+  "value_mappings": {
+    "technical": [
+      "技术能力与实现",
+      "核心能力 + 项目经历首条"
+    ],
+    "project_management": [
+      "项目交付与协作",
+      "相关经历首条"
+    ],
+    "analysis": [
+      "数据分析与问题解决",
+      "核心能力 + 项目经历"
+    ],
+    "execution": [
+      "落地执行与结果",
+      "相关经历"
+    ]
+  },
+  "preferred_actions": [
+    "built",
+    "developed",
+    "implemented",
+    "designed",
+    "optimized",
+    "led"
+  ],
+  "allowed_verbs": [
+    "开发",
+    "实现",
+    "设计",
+    "优化",
+    "构建",
+    "主导",
+    "完成"
+  ],
+  "restricted_verbs": [
+    "参与",
+    "协助",
+    "支持",
+    "负责范围不明"
+  ],
+  "forbidden_claims": [
+    "独立负责全部系统",
+    "确保系统稳定（无证据）",
+    "主导所有技术决策"
+  ],
+  "required_evidence": {
+    "owned_component": [
+      "specific_task",
+      "deliverable"
+    ],
+    "led_delivery": [
+      "execution_evidence",
+      "coordination_evidence",
+      "completion_evidence"
+    ]
+  },
+  "sentence_patterns": [
+    "使用{tech}实现{feature}，达到{metric}",
+    "主导{project}的{module}开发，{outcome}",
+    "优化{system} {action}，{value}"
+  ],
+  "evaluation_cases": []
+}

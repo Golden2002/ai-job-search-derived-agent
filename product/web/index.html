@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>通用简历制作 Agent</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #FAF8F4; color: #1F1B16; }
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+  h1 { font-size: 24px; margin-bottom: 8px; color: #3D55E8; }
+  .sub { color: #5C534A; margin-bottom: 24px; }
+  .card { background: #fff; border: 1px solid #e2dccf; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  textarea { width: 100%; min-height: 120px; border: 1px solid #d8d2c6; border-radius: 8px; padding: 12px; font-size: 14px; resize: vertical; }
+  input[type=text] { width: 100%; border: 1px solid #d8d2c6; border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  label { display: block; font-size: 13px; color: #5C534A; margin: 12px 0 6px; }
+  button { background: #4F6BFF; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; margin-top: 12px; }
+  button:hover { background: #3D55E8; }
+  button.secondary { background: #fff; color: #4F6BFF; border: 1px solid #4F6BFF; margin-left: 8px; }
+  .facts { margin-top: 12px; }
+  .fact { background: #F5F2EC; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 14px; }
+  .fact .tag { font-size: 11px; color: #4F6BFF; margin-left: 8px; }
+  #result { white-space: pre-wrap; background: #F5F2EC; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; margin-top: 12px; }
+  .error { color: #c0392b; font-size: 13px; margin-top: 8px; }
+  .steps { display: flex; gap: 8px; margin-bottom: 20px; font-size: 13px; color: #5C534A; }
+  .steps .s { background: #fff; border: 1px solid #e2dccf; padding: 6px 14px; border-radius: 16px; }
+  .steps .s.active { background: #4F6BFF; color: #fff; border-color: #4F6BFF; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>通用简历制作 Agent</h1>
+  <p class="sub">把真实经历翻译成岗位听得懂的简历 —— 上传经历 → 事实校验 → 定向表达 → 导出</p>
+
+  <div class="steps">
+    <span class="s active">① 填写经历</span>
+    <span class="s">② 事实校验</span>
+    <span class="s">③ 定向生成</span>
+    <span class="s">④ 导出下载</span>
+  </div>
+
+  <div class="card">
+    <label>你的经历描述（教育/实习/项目/技能，尽量具体，含量化数据）</label>
+    <textarea id="experience" placeholder="例：我在字节跳动实习，负责抖音推荐算法优化，通过 A/B 测试提升点击率 15%；主导了用户画像模块开发，覆盖 500 万用户。"></textarea>
+    <button onclick="enrich()">① 提取事实卡</button>
+    <div class="facts" id="facts"></div>
+    <div class="error" id="err1"></div>
+  </div>
+
+  <div class="card" id="genCard" style="display:none">
+    <label>目标岗位（触发定向表达）</label>
+    <input type="text" id="target_role" placeholder="例：算法工程师 / 产品经理 / 数据分析师">
+    <button onclick="generate()">② 生成简历</button>
+    <button class="secondary" onclick="downloadHTML()">导出 HTML</button>
+    <div id="result"></div>
+    <div class="error" id="err2"></div>
+  </div>
+</div>
+
+<script>
+let currentFacts = [];
+
+async function enrich() {
+  const raw = document.getElementById('experience').value;
+  if (!raw.trim()) { document.getElementById('err1').textContent = '请填写经历描述'; return; }
+  const r = await fetch('/api/enrich', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({raw_text: raw})
+  });
+  const d = await r.json();
+  if (!d.ok) { document.getElementById('err1').textContent = d.error || '失败'; return; }
+  currentFacts = d.facts;
+  document.getElementById('facts').innerHTML = d.facts.map((f, i) =>
+    `<div class="fact"><b>事实卡 ${i+1}</b>：${escapeHtml(f.claim)}<span class="tag">证据</span>${escapeHtml(f.evidence || '')}</div>`
+  ).join('');
+  document.getElementById('genCard').style.display = 'block';
+}
+
+async function generate() {
+  const role = document.getElementById('target_role').value;
+  const r = await fetch('/api/generate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'markdown'})
+  });
+  const d = await r.json();
+  if (!d.ok) { document.getElementById('err2').textContent = d.error || '失败'; return; }
+  document.getElementById('result').textContent = d.resume;
+}
+
+async function downloadHTML() {
+  const role = document.getElementById('target_role').value;
+  const r = await fetch('/api/generate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'html'})
+  });
+  const d = await r.json();
+  if (!d.ok) { document.getElementById('err2').textContent = d.error || '失败'; return; }
+  const blob = new Blob([d.resume], {type: 'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '我的简历.html';
+  a.click();
+}
+
+function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
