@@ -52,6 +52,8 @@
     <input type="text" id="target_role" placeholder="例：算法工程师 / 产品经理 / 数据分析师">
     <button onclick="generate()">② 生成简历</button>
     <button class="secondary" onclick="downloadHTML()">导出 HTML</button>
+    <button class="secondary" onclick="downloadWord()">导出 Word</button>
+    <button class="secondary" onclick="downloadPDF()">导出 PDF</button>
     <div id="result"></div>
     <div class="error" id="err2"></div>
   </div>
@@ -99,6 +101,34 @@ async function downloadHTML() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = '我的简历.html';
+  a.click();
+}
+
+async function downloadWord() {
+  const role = document.getElementById('target_role').value;
+  const r = await fetch('/api/generate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'docx'})
+  });
+  if (!r.ok) { document.getElementById('err2').textContent = 'Word 导出失败'; return; }
+  const blob = await r.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '我的简历.docx';
+  a.click();
+}
+
+async function downloadPDF() {
+  const role = document.getElementById('target_role').value;
+  const r = await fetch('/api/generate', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'pdf'})
+  });
+  if (!r.ok) { document.getElementById('err2').textContent = 'PDF 导出失败'; return; }
+  const blob = await r.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '我的简历.pdf';
   a.click();
 }
 

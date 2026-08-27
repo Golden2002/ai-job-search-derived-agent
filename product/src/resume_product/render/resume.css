@@ -1,0 +1,52 @@
+/* resume.css — 简历 PDF 渲染固定资产（P ⭐）
+   官方正式风格：宋体、黑白、公文排版。复用词汇表 PDF 的成熟样式体系。 */
+@page {
+  size: A4;
+  margin: 22mm 22mm 20mm 22mm;
+}
+body {
+  font-family: 'SimSun', 'Songti SC', 'Noto Serif CJK SC', serif;
+  font-size: 11pt;
+  line-height: 1.7;
+  color: #000000;
+}
+h1 {
+  font-size: 20pt;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1px solid #000;
+  padding-bottom: 8pt;
+  margin: 0 0 6pt 0;
+  letter-spacing: 1pt;
+}
+.subtitle {
+  font-size: 10pt;
+  color: #333;
+  text-align: center;
+  margin: 0 0 14pt 0;
+}
+.adapt {
+  font-size: 10pt;
+  color: #333;
+  text-align: center;
+  margin: 0 0 10pt 0;
+}
+.experience {
+  margin: 6pt 0;
+}
+.experience .claim {
+  font-size: 11pt;
+  font-weight: bold;
+  margin-bottom: 2pt;
+}
+.experience .evidence {
+  font-size: 10pt;
+  color: #444;
+  margin-left: 14pt;
+  margin-bottom: 6pt;
+}
+hr {
+  border: none;
+  border-top: 1px solid #999;
+  margin: 8pt 0;
+}

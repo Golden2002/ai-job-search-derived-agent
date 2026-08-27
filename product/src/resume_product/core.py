@@ -145,6 +145,101 @@ class ResumeEngine:
 h1{{text-align:center;border-bottom:1px solid #333;padding-bottom:8px}}</style>
 </head><body>{body}</body></html>"""
 
+    def to_docx(self, facts: List[Dict[str, str]],
+                target_role: str = "", out_path: str = "") -> str:
+        """结构化 → Word 简历（python-docx，专业排版）。
+
+        Returns: 生成的 .docx 文件路径。
+        """
+        try:
+            from docx import Document
+            from docx.shared import Pt, RGBColor, Cm
+            from docx.enum.text import WD_ALIGN_PARAGRAPH
+        except ImportError:
+            # python-docx 未装 → 降级生成 .doc（纯文本）
+            import tempfile
+            md = self.compose(facts, target_role)
+            if not out_path:
+                out_path = os.path.join(tempfile.gettempdir(),
+                                        "resume_plain.txt")
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(md)
+            return out_path
+
+        import tempfile
+        doc = Document()
+        # 页面边距
+        for section in doc.sections:
+            section.top_margin = Cm(2.0)
+            section.bottom_margin = Cm(2.0)
+            section.left_margin = Cm(2.5)
+            section.right_margin = Cm(2.5)
+
+        # 标题（居中）
+        title = doc.add_paragraph()
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = title.add_run(target_role or "个人简历")
+        run.font.size = Pt(20)
+        run.bold = True
+        run.font.color.rgb = RGBColor(0x1F, 0x1B, 0x16)
+
+        # 适配方向
+        pack = _load_role_packs().get(self.role_pack, {})
+        label = pack.get("label", "通用")
+        if pack.get("priorities"):
+            sub = doc.add_paragraph()
+            sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            sr = sub.add_run(f"适配方向：{label}（{', '.join(pack['priorities'])}）")
+            sr.font.size = Pt(10)
+            sr.font.color.rgb = RGBColor(0x5C, 0x53, 0x4A)
+
+        # 分隔线
+        doc.add_paragraph()
+
+        # 经历（事实卡）
+        for i, fact in enumerate(facts[:10], 1):
+            claim = fact.get("claim", "")
+            ev = fact.get("evidence", "")
+            if not claim:
+                continue
+            p = doc.add_paragraph()
+            r = p.add_run(f"{i}. {claim}")
+            r.font.size = Pt(11)
+            r.font.color.rgb = RGBColor(0x1F, 0x1B, 0x16)
+            if ev and ev != claim:
+                ep = doc.add_paragraph()
+                ep.paragraph_format.left_indent = Cm(0.6)
+                er = ep.add_run(f"证据：{ev}")
+                er.font.size = Pt(10)
+                er.font.color.rgb = RGBColor(0x5C, 0x53, 0x4A)
+            p.paragraph_format.space_after = Pt(4)
+
+        if not out_path:
+            out_path = os.path.join(tempfile.gettempdir(), "resume.docx")
+        doc.save(out_path)
+        return out_path
+
+    def to_pdf(self, facts: List[Dict[str, str]],
+               target_role: str = "", out_path: str = "") -> str:
+        """结构化 → PDF（固定资产渲染：render/resume.css + render_pdf.py）。
+
+        Returns: 生成的 .pdf 文件路径。
+        """
+        import tempfile
+        # 1. 生成 markdown
+        md = self.compose(facts, target_role)
+        # 2. 固定资产渲染（render/resume.css + render_pdf.py——Playwright + Chrome）
+        from .render import render_markdown_to_pdf
+        if not out_path:
+            out_path = os.path.join(tempfile.gettempdir(), "resume.pdf")
+        try:
+            return render_markdown_to_pdf(md, out_path)
+        except Exception:
+            # 降级：Playwright 不可用 → 返回 markdown（标记）
+            with open(out_path.replace(".pdf", ".md"), "w", encoding="utf-8") as f:
+                f.write(md)
+            return out_path.replace(".pdf", ".md")
+
 
 # ═══════════════════════════════════════════════════════════
 # 便捷 API（MCP 工具对应）
@@ -161,10 +256,14 @@ def generate_resume(experiences: List[Dict[str, str]],
                     target_role: str = "",
                     format: str = "markdown",
                     chat_fn: Optional[Callable] = None) -> str:
-    """经历 → 定向简历（markdown/html）。"""
+    """经历 → 定向简历（markdown/html/docx/pdf——docx/pdf 返回文件路径）。"""
     eng = ResumeEngine(chat_fn=chat_fn or _engine.chat_fn)
     if format == "html":
         return eng.to_html(experiences, target_role)
+    if format == "docx":
+        return eng.to_docx(experiences, target_role)
+    if format == "pdf":
+        return eng.to_pdf(experiences, target_role)
     return eng.compose(experiences, target_role)
 
 

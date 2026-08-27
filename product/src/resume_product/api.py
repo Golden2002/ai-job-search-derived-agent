@@ -45,6 +45,28 @@ def create_app(config: dict | None = None) -> Flask:
         experiences = data.get("experiences", [])
         target_role = data.get("target_role", "")
         fmt = data.get("format", "markdown")
+        if fmt == "docx":
+            # Word 导出——生成文件并返回下载
+            from .core import generate_resume as _gen
+            path = _gen(experiences, target_role=target_role, format="docx")
+            if path.endswith(".docx"):
+                from flask import send_file
+                return send_file(path, as_attachment=True,
+                                 download_name="我的简历.docx",
+                                 mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            return jsonify({"ok": True, "resume": open(path, encoding="utf-8").read(),
+                            "format": "text"})
+        if fmt == "pdf":
+            # PDF 导出——固定资产渲染
+            from .core import generate_resume as _gen
+            path = _gen(experiences, target_role=target_role, format="pdf")
+            if path.endswith(".pdf"):
+                from flask import send_file
+                return send_file(path, as_attachment=True,
+                                 download_name="我的简历.pdf",
+                                 mimetype="application/pdf")
+            return jsonify({"ok": True, "resume": open(path, encoding="utf-8").read(),
+                            "format": "text"})
         resume = generate_resume(experiences, target_role=target_role, format=fmt)
         return jsonify({"ok": True, "resume": resume, "format": fmt})
 
