@@ -1,0 +1,70 @@
+/* classic.css — 经典素雅（宋体黑白公文档，对标 moderncv banking 精神）
+   固定资产模板之一：简历 PDF 渲染（render_pdf.py 加载）。 */
+
+:root {
+  --accent: #1a1a1a;
+  --text: #000000;
+  --muted: #444444;
+  --border: #999999;
+}
+
+@page {
+  size: A4;
+  margin: 22mm 22mm 20mm 22mm;
+}
+
+body {
+  font-family: 'SimSun', 'Songti SC', 'Noto Serif CJK SC', 'Microsoft YaHei', serif;
+  font-size: 11pt;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.r-title {
+  font-size: 20pt;
+  font-weight: bold;
+  text-align: center;
+  border-bottom: 1.5px solid var(--border);
+  padding-bottom: 8pt;
+  margin: 0 0 6pt 0;
+  letter-spacing: 1pt;
+  color: var(--text);
+}
+
+.r-adapt {
+  font-size: 10pt;
+  color: var(--muted);
+  text-align: center;
+  margin: 0 0 14pt 0;
+}
+
+.r-exp {
+  margin: 7pt 0;
+}
+
+.r-claim {
+  font-size: 11.5pt;
+  font-weight: bold;
+  margin-bottom: 2pt;
+}
+
+.r-evidence {
+  font-size: 10pt;
+  color: var(--muted);
+  margin-left: 14pt;
+  margin-bottom: 6pt;
+  border-left: 2px solid var(--border);
+  padding-left: 8pt;
+}
+
+.r-subtitle {
+  font-size: 12pt;
+  font-weight: bold;
+  margin: 10pt 0 4pt 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2pt;
+}
+
+p {
+  margin: 3pt 0;
+}

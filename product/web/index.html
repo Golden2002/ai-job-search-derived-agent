@@ -51,6 +51,15 @@
   .ats-pass { color: #27ae60; } .ats-mid { color: #f39c12; } .ats-fail { color: #c0392b; }
   .hidden { display: none; }
   .questions { font-size: 13px; color: #b9770e; background: #fef4e2; border-radius: 8px; padding: 10px; margin-top: 8px; }
+  .tpl-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 8px; }
+  .tpl-card { border: 1px solid #e2dccf; border-radius: 10px; padding: 10px; cursor: pointer; background: #fff; }
+  .tpl-card:hover { border-color: #4F6BFF; }
+  .tpl-card.selected { border-color: #4F6BFF; background: #E8EDFF; }
+  .tpl-preview { height: 52px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e2dccf; background: #fff; position: relative; overflow: hidden; }
+  .tpl-preview .bar { height: 5px; width: 55%; margin: 8px auto; border-radius: 3px; }
+  .tpl-preview .line { height: 3px; width: 80%; margin: 4px auto; border-radius: 2px; background: #d8d2c6; }
+  .tpl-card h3 { font-size: 13px; margin-bottom: 2px; }
+  .tpl-card .desc { font-size: 11px; color: #5C534A; }
 </style>
 </head>
 <body>
@@ -113,7 +122,9 @@
   <!-- ⑥ 导出 -->
   <div class="card hidden" id="card6">
     <h2>导出下载</h2>
-    <p style="font-size:13px;color:#5C534A">编辑完成后选择格式导出：</p>
+    <p style="font-size:13px;color:#5C534A">选择 PDF 渲染模板（可自定义 CSS 换肤）：</p>
+    <div class="tpl-list" id="tplList"></div>
+    <p style="font-size:13px;color:#5C534A;margin-top:12px">编辑完成后选择格式导出：</p>
     <button onclick="downloadHTML()">导出 HTML</button>
     <button onclick="downloadWord()">导出 Word</button>
     <button onclick="downloadPDF()">导出 PDF</button>
@@ -125,6 +136,8 @@
 let currentFacts = [];
 let matchResult = null;
 let chosenVersion = 'professional';
+let chosenTemplate = 'classic';
+let templatesLoaded = false;
 
 function showStep(n) {
   document.querySelectorAll('#steps .s').forEach(el => {
@@ -134,7 +147,28 @@ function showStep(n) {
   for (let i = 1; i <= 6; i++) {
     document.getElementById('card' + i).classList.toggle('hidden', i !== n);
   }
+  if (n === 6 && !templatesLoaded) loadTemplates();
   if (n >= 6) window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+}
+
+async function loadTemplates() {
+  try {
+    const r = await fetch('/api/templates');
+    const d = await r.json();
+    if (!d.ok || !d.templates) return;
+    templatesLoaded = true;
+    document.getElementById('tplList').innerHTML = d.templates.map(t => `
+      <div class="tpl-card ${t.id===chosenTemplate?'selected':''}" data-tpl="${t.id}" onclick="pickTemplate('${t.id}')">
+        <div class="tpl-preview"><div class="bar" style="background:${t.accent}"></div><div class="line"></div><div class="line" style="width:60%"></div></div>
+        <h3>${escapeHtml(t.name)}</h3>
+        <div class="desc">${escapeHtml(t.description)}</div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+function pickTemplate(id) {
+  chosenTemplate = id;
+  document.querySelectorAll('.tpl-card').forEach(el => el.classList.toggle('selected', el.dataset.tpl === id));
 }
 
 function setErr(id, msg) { document.getElementById(id).textContent = msg || ''; }
@@ -271,7 +305,7 @@ async function downloadWord() {
 
 async function downloadPDF() {
   const body = genBody();
-  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'pdf'})});
+  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'pdf', template: chosenTemplate})});
   if (!r.ok) { setErr('err6', 'PDF 导出失败'); return; }
   const blob = await r.blob();
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.pdf'; a.click();

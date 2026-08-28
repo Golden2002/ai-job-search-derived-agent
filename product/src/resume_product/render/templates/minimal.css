@@ -1,0 +1,68 @@
+/* minimal.css — 极简单栏（大留白、细字重、灰阶克制）
+   固定资产模板之三：简历 PDF 渲染（render_pdf.py 加载）。 */
+
+:root {
+  --accent: #3a3a3a;
+  --text: #2b2b2b;
+  --muted: #8a8a8a;
+  --border: transparent;
+}
+
+@page {
+  size: A4;
+  margin: 26mm 26mm 24mm 26mm;
+}
+
+body {
+  font-family: 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.9;
+  color: var(--text);
+  font-weight: 300;
+}
+
+.r-title {
+  font-size: 19pt;
+  font-weight: 300;
+  text-align: left;
+  color: var(--text);
+  margin: 0 0 18pt 0;
+  letter-spacing: 3pt;
+}
+
+.r-adapt {
+  font-size: 9pt;
+  color: var(--muted);
+  letter-spacing: 1pt;
+  margin: 0 0 20pt 0;
+}
+
+.r-exp {
+  margin: 10pt 0;
+}
+
+.r-claim {
+  font-size: 11pt;
+  font-weight: 400;
+  margin-bottom: 1pt;
+}
+
+.r-evidence {
+  font-size: 9.5pt;
+  color: var(--muted);
+  margin-left: 16pt;
+  margin-bottom: 8pt;
+}
+
+.r-subtitle {
+  font-size: 10pt;
+  font-weight: 400;
+  letter-spacing: 2pt;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 18pt 0 6pt 0;
+}
+
+p {
+  margin: 4pt 0;
+}

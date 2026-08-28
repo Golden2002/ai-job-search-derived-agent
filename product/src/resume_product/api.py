@@ -51,6 +51,17 @@ def create_app(config: dict | None = None) -> Flask:
     def role_packs():
         return jsonify({"ok": True, "role_packs": list_role_packs()})
 
+    @app.route("/api/templates")
+    def templates():
+        """PDF 渲染模板清单（前端模板示例卡片数据源）。"""
+        from .render.render_pdf import TEMPLATE_META, TEMPLATE_IDS
+        return jsonify({
+            "ok": True,
+            "templates": [
+                {"id": tid, **TEMPLATE_META.get(tid, {})} for tid in TEMPLATE_IDS
+            ],
+        })
+
     @app.route("/api/enrich", methods=["POST"])
     def enrich():
         """经历 → 事实卡（含 claim_gate 分档：verified/unverified/exaggerated）。"""
@@ -150,13 +161,32 @@ def create_app(config: dict | None = None) -> Flask:
 
     @app.route("/api/export", methods=["POST"])
     def export():
-        """导出 docx/pdf 文件下载。"""
+        """导出 docx/pdf 文件下载（PDF 支持模板选择 + 自定义 CSS）。"""
         data = request.get_json(force=True) or {}
         experiences = data.get("experiences", [])
         target_role = data.get("target_role", "")
         fmt = data.get("format", "docx")
+        template = data.get("template", "classic")
+        custom_css = data.get("custom_css")
         if fmt not in ("docx", "pdf"):
             return jsonify({"ok": False, "error": f"不支持的格式: {fmt}"}), 400
+        if fmt == "pdf":
+            from .core import generate_resume as _gen_md
+            md = _gen_md(experiences, target_role=target_role, format="markdown")
+            from .render.render_pdf import render_markdown_to_pdf
+            import tempfile
+            path = os.path.join(tempfile.gettempdir(), "resume_export.pdf")
+            try:
+                path = render_markdown_to_pdf(md, path, template=template,
+                                              custom_css=custom_css)
+            except Exception as e:
+                return jsonify({"ok": False,
+                                "error": f"PDF 渲染失败（Chrome/Playwright 依赖）: {str(e)[:200]}"}), 500
+            if path.endswith(".pdf"):
+                return send_file(path, as_attachment=True,
+                                 download_name="我的简历.pdf",
+                                 mimetype="application/pdf")
+            return jsonify({"ok": False, "error": "PDF 未生成"}), 500
         path = generate_resume(experiences, target_role=target_role, format=fmt)
         if isinstance(path, str) and path.endswith("." + fmt):
             name = f"我的简历.{fmt}"

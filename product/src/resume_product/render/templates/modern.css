@@ -1,0 +1,87 @@
+/* modern.css — 现代风格（无衬线、教育蓝点缀、左侧色带、卡片感）
+   固定资产模板之二：简历 PDF 渲染（render_pdf.py 加载）。 */
+
+:root {
+  --accent: #3D55E8;
+  --text: #1F1B16;
+  --muted: #5C534A;
+  --border: #d8d2c6;
+  --surface: #F5F2EC;
+}
+
+@page {
+  size: A4;
+  margin: 20mm 18mm 18mm 18mm;
+}
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.65;
+  color: var(--text);
+  background: #fff;
+}
+
+/* 左侧色带（fixed 在打印时按每页重复） */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6mm;
+  height: 100%;
+  background: var(--accent);
+}
+
+.r-title {
+  font-size: 21pt;
+  font-weight: 700;
+  text-align: left;
+  color: var(--accent);
+  margin: 0 0 2pt 0;
+  letter-spacing: 0.5pt;
+  border-bottom: 2.5px solid var(--accent);
+  padding-bottom: 8pt;
+}
+
+.r-adapt {
+  display: inline-block;
+  font-size: 9.5pt;
+  color: var(--accent);
+  background: #E8EDFF;
+  border-radius: 10pt;
+  padding: 3pt 10pt;
+  margin: 6pt 0 14pt 0;
+}
+
+.r-exp {
+  background: var(--surface);
+  border-radius: 8pt;
+  padding: 8pt 12pt;
+  margin: 6pt 0;
+  border-left: 3pt solid var(--accent);
+}
+
+.r-claim {
+  font-size: 11pt;
+  font-weight: 600;
+  margin-bottom: 2pt;
+}
+
+.r-evidence {
+  font-size: 9.5pt;
+  color: var(--muted);
+  margin-left: 8pt;
+  margin-bottom: 4pt;
+}
+
+.r-subtitle {
+  font-size: 12.5pt;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 12pt 0 4pt 0;
+}
+
+p {
+  margin: 3pt 0;
+}
