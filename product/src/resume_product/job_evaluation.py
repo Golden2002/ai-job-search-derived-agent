@@ -14,12 +14,35 @@ Language Gate + 五维评分框架），通用化后作为 PAEG 简历工具的�
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional
 
 
 def _norm(s: str) -> str:
     """归一化关键词（大小写 + 去空白）。"""
     return " ".join(str(s).strip().lower().split())
+
+
+def _tokenize(text: str) -> List[str]:
+    """§3.116 ⭐ R-R3 中英文分词：英文按空白/标点，中文用 jieba（缺失时字符 bigram 兜底）。
+
+    修复审查发现"CJK 相关性评分失效"（.split() 对中文无空格 → 整段成一个 token）。
+    """
+    tokens: List[str] = []
+    for part in re.split(r'[\s,，。.;；:：!?！？、()（）\[\]【】]+', str(text).lower()):
+        if not part:
+            continue
+        if re.search(r'[\u4e00-\u9fff]', part):
+            try:
+                import jieba
+                tokens.extend(w for w in jieba.cut(part) if w.strip())
+            except Exception:
+                # 无 jieba 时字符 bigram 兜底（中文 2 字组合）
+                _bg = [part[i:i + 2] for i in range(len(part) - 1)]
+                tokens.extend(_bg or [part])
+        else:
+            tokens.append(part)
+    return tokens
 
 
 def _contains_any(text: str, keywords: List[str]) -> bool:
@@ -222,8 +245,14 @@ def evaluate_fit(posting: Dict[str, Any], profile: Dict[str, Any]) -> Dict[str, 
 def _score_skills(posting_text: str, skills: List[str]) -> int:
     if not skills:
         return 20
-    matched = [s for s in skills if s in posting_text]
-    ratio = len(matched) / len(skills)
+    # §3.116 ⭐ R-R3：分词后 token 子集匹配（中文技能词也能命中）
+    posting_tokens = set(_tokenize(posting_text))
+    matched = 0
+    for s in skills:
+        s_tokens = set(_tokenize(s))
+        if s in posting_text or (s_tokens and s_tokens.issubset(posting_tokens)):
+            matched += 1
+    ratio = matched / len(skills)
     if ratio >= 0.8:
         return 80 + int(20 * ratio)
     if ratio >= 0.5:
@@ -242,8 +271,8 @@ def _score_experience(posting_text: str, experience: List[Dict[str, Any]]) -> in
         func_keywords.append(_norm(exp.get("role", "")))
         func_keywords.append(_norm(exp.get("summary", "") or exp.get("description", "")))
     all_func = " ".join(func_keywords)
-    # 粗粒度：职位描述与经历职能文本的重叠
-    overlap = len(set(posting_text.split()) & set(all_func.split()))
+    # §3.116 ⭐ R-R3：中文分词后 set 交集（.split() 对中文无效）
+    overlap = len(set(_tokenize(posting_text)) & set(_tokenize(all_func)))
     base = min(60, overlap)
     return 50 + base if experience and overlap > 3 else 35
 
