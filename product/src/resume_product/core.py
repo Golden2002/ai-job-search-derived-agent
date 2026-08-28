@@ -18,6 +18,18 @@ import os
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+from . import llm_client
+
+# 语言规范模块（PAEG 工具生态 14.1——独立仓库同步接入）
+try:
+    from paeg_lang_style import fix_known_gaffes as _lang_fix
+    _HAS_LANG_STYLE = True
+except ImportError:
+    _HAS_LANG_STYLE = False
+
+    def _lang_fix(text: str) -> str:
+        return text
+
 # 复用 medical-resume-agent 引擎（不重复造轮子）
 _MEDICAL_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                             "..", "..", "..", "..",
@@ -53,8 +65,8 @@ def _load_role_packs() -> Dict[str, Dict[str, Any]]:
 
 
 def _default_chat(sys_p: str, usr_p: str) -> str:
-    """默认 chat_fn：无 LLM 时返回空（确定性模式）。"""
-    return ""
+    """默认 chat_fn：DeepSeek LLM（失败返回空串 → 调用方降级确定性模式）。"""
+    return llm_client.chat(sys_p, usr_p)
 
 
 class ResumeEngine:
@@ -68,26 +80,31 @@ class ResumeEngine:
     def enrich(self, raw_text: str) -> List[Dict[str, str]]:
         """经历文本 → 结构化事实卡（主张校验思想）。
 
-        无 LLM 时：确定性启发式提取（量化数字/动词短语）。
-        有 LLM 时：提示词提取事实卡（要求引用原文）。
+        总是尝试 LLM（默认 chat_fn 即 DeepSeek，失败/空串时降级）。
+        LLM 拆解：口语规范化 + 结构化事实卡（引用原文 + 保留量化数据）。
         """
         if not raw_text or not raw_text.strip():
             return []
-        if self.chat_fn is _default_chat:
-            return self._heuristic_extract(raw_text)
         # LLM 提取（主张校验——要求引用原文）
         sys_p = ("你是经历拆解助手。从用户提供的经历描述中提取结构化事实卡。"
-                 "每张事实卡必须：1) 保留原文关键信息 2) 标注可验证的证据 3) 保留量化数据。"
-                 '输出 JSON 数组：[{"claim": "主张", "evidence": "证据", "quote": "原文引用"}]')
+                 "用户输入往往含口语化、自嘲式表述（如『瞎调参数』『充数』『spice monkey』），"
+                 "你必须先做口语规范化：把口语/自嘲表述转为书面、客观、规范的简历语言，"
+                 "同时保留真实信息与量化数据，绝不编造、绝不夸大。"
+                 "每张事实卡必须：1) claim 为规范化后的书面表述 2) 标注可验证的证据 "
+                 "3) 保留量化数据 4) quote 引用原文关键片段。"
+                 '输出 JSON 数组：[{"claim": "规范化主张", "evidence": "证据", "quote": "原文引用"}]')
         raw = self.chat_fn(sys_p, f"经历描述：{raw_text}")
-        try:
-            import re
-            m = re.search(r"\[.*\]", raw or "", re.S)
-            if m:
-                data = json.loads(m.group(0))
-                return [d for d in data if isinstance(d, dict)]
-        except Exception:
-            pass
+        if raw and raw.strip():
+            try:
+                import re
+                m = re.search(r"\[.*\]", raw or "", re.S)
+                if m:
+                    data = json.loads(m.group(0))
+                    facts = [d for d in data if isinstance(d, dict) and d.get("claim")]
+                    if facts:
+                        return facts
+            except Exception:
+                pass
         return self._heuristic_extract(raw_text)
 
     def _heuristic_extract(self, raw_text: str) -> List[Dict[str, str]]:
@@ -116,9 +133,11 @@ class ResumeEngine:
             claim = fact.get("claim", "")
             ev = fact.get("evidence", "")
             if claim:
+                # 语言规范模块（14.1 paeg_lang_style）：病句/口语修正后再输出
+                claim = _lang_fix(claim)
                 lines.append(f"{i}. {claim}")
                 if ev and ev != claim:
-                    lines.append(f"   - 证据：{ev}")
+                    lines.append(f"   - 证据：{_lang_fix(ev)}")
         return "\n".join(lines)
 
     def to_html(self, facts: List[Dict[str, str]],
