@@ -30,12 +30,11 @@ except ImportError:
     def _lang_fix(text: str) -> str:
         return text
 
-# 复用 medical-resume-agent 引擎（不重复造轮子）
-_MEDICAL_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "..", "..", "..", "..",
-                            "medical-resume-agent", "src")
-if _MEDICAL_SRC not in os.sys.path:
-    os.sys.path.insert(0, _MEDICAL_SRC)
+# §3.116 ⭐ R-09 融合修复：medical-resume-agent 引擎已**本地移植**（不重复造轮子）——
+# claim_gate/confirmation_gate/canonical_experience/multi_version/capability_taxonomy
+# 均已落地为 product/src/resume_product/ 下同名模块（见 claim_gate.py 等）。
+# 原 _MEDICAL_SRC 外部路径引用（指向不存在的 "medical-resume-agent" 目录）为死代码，
+# 已移除——本地移植版为权威实现，不依赖 14.6 运行时路径。
 
 # 数据目录（product/data/——role_packs + capability_tags）
 _DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
