@@ -7,129 +7,274 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #FAF8F4; color: #1F1B16; }
-  .container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
-  h1 { font-size: 24px; margin-bottom: 8px; color: #3D55E8; }
-  .sub { color: #5C534A; margin-bottom: 24px; }
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-size: 26px; margin-bottom: 6px; color: #3D55E8; }
+  .sub { color: #5C534A; margin-bottom: 20px; font-size: 14px; }
+  .steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; font-size: 13px; color: #5C534A; }
+  .steps .s { background: #fff; border: 1px solid #e2dccf; padding: 6px 14px; border-radius: 16px; }
+  .steps .s.active { background: #4F6BFF; color: #fff; border-color: #4F6BFF; }
+  .steps .s.done { background: #E8EDFF; color: #3D55E8; border-color: #3D55E8; }
   .card { background: #fff; border: 1px solid #e2dccf; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-  textarea { width: 100%; min-height: 120px; border: 1px solid #d8d2c6; border-radius: 8px; padding: 12px; font-size: 14px; resize: vertical; }
-  input[type=text] { width: 100%; border: 1px solid #d8d2c6; border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  .card h2 { font-size: 16px; margin-bottom: 12px; color: #1F1B16; }
+  textarea, input[type=text] { width: 100%; border: 1px solid #d8d2c6; border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  textarea { min-height: 130px; resize: vertical; font-family: inherit; line-height: 1.7; }
   label { display: block; font-size: 13px; color: #5C534A; margin: 12px 0 6px; }
   button { background: #4F6BFF; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; margin-top: 12px; }
   button:hover { background: #3D55E8; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
   button.secondary { background: #fff; color: #4F6BFF; border: 1px solid #4F6BFF; margin-left: 8px; }
-  .facts { margin-top: 12px; }
-  .fact { background: #F5F2EC; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 14px; }
-  .fact .tag { font-size: 11px; color: #4F6BFF; margin-left: 8px; }
-  #result { white-space: pre-wrap; background: #F5F2EC; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; margin-top: 12px; }
   .error { color: #c0392b; font-size: 13px; margin-top: 8px; }
-  .steps { display: flex; gap: 8px; margin-bottom: 20px; font-size: 13px; color: #5C534A; }
-  .steps .s { background: #fff; border: 1px solid #e2dccf; padding: 6px 14px; border-radius: 16px; }
-  .steps .s.active { background: #4F6BFF; color: #fff; border-color: #4F6BFF; }
+  .fact { background: #F5F2EC; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 14px; border-left: 4px solid #d8d2c6; }
+  .fact.verified { border-left-color: #27ae60; }
+  .fact.unverified { border-left-color: #f39c12; }
+  .fact.exaggerated { border-left-color: #c0392b; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+  .badge.verified { background: #e3f6ec; color: #27ae60; }
+  .badge.unverified { background: #fef4e2; color: #b9770e; }
+  .badge.exaggerated { background: #fdeaea; color: #c0392b; }
+  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0; }
+  .score-item { background: #F5F2EC; border-radius: 8px; padding: 10px; text-align: center; }
+  .score-item .num { font-size: 20px; font-weight: 700; color: #3D55E8; }
+  .score-item .lbl { font-size: 12px; color: #5C534A; margin-top: 2px; }
+  .verdict { font-size: 15px; font-weight: 600; margin: 8px 0; }
+  .gap-chip { display: inline-block; background: #fef4e2; color: #b9770e; border-radius: 12px; padding: 3px 10px; font-size: 12px; margin: 3px; }
+  .match-chip { display: inline-block; background: #e3f6ec; color: #27ae60; border-radius: 12px; padding: 3px 10px; font-size: 12px; margin: 3px; }
+  .versions { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+  .ver-card { background: #F5F2EC; border-radius: 10px; padding: 12px; border: 1px solid #e2dccf; cursor: pointer; }
+  .ver-card:hover { border-color: #4F6BFF; }
+  .ver-card.selected { border-color: #4F6BFF; background: #E8EDFF; }
+  .ver-card h3 { font-size: 14px; margin-bottom: 8px; }
+  .ver-card p { font-size: 13px; line-height: 1.7; white-space: pre-wrap; max-height: 160px; overflow-y: auto; }
+  #result { white-space: pre-wrap; background: #F5F2EC; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; margin-top: 12px; }
+  #result[contenteditable="true"] { border: 1px dashed #4F6BFF; background: #fff; }
+  .ats-score { font-size: 28px; font-weight: 700; }
+  .ats-pass { color: #27ae60; } .ats-mid { color: #f39c12; } .ats-fail { color: #c0392b; }
+  .hidden { display: none; }
+  .questions { font-size: 13px; color: #b9770e; background: #fef4e2; border-radius: 8px; padding: 10px; margin-top: 8px; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1>通用简历制作 Agent</h1>
-  <p class="sub">把真实经历翻译成岗位听得懂的简历 —— 上传经历 → 事实校验 → 定向表达 → 导出</p>
+  <p class="sub">经历 → 事实校验 → JD 匹配 → 三版本生成 → ATS 校验 → 导出</p>
 
-  <div class="steps">
-    <span class="s active">① 填写经历</span>
-    <span class="s">② 事实校验</span>
-    <span class="s">③ 定向生成</span>
-    <span class="s">④ 导出下载</span>
+  <div class="steps" id="steps">
+    <span class="s active" data-step="1">① 填写经历与 JD</span>
+    <span class="s" data-step="2">② 事实校验</span>
+    <span class="s" data-step="3">③ JD 匹配评分</span>
+    <span class="s" data-step="4">④ 三版本生成</span>
+    <span class="s" data-step="5">⑤ ATS 校验</span>
+    <span class="s" data-step="6">⑥ 在线编辑与导出</span>
   </div>
 
-  <div class="card">
-    <label>你的经历描述（教育/实习/项目/技能，尽量具体，含量化数据）</label>
+  <!-- ① 经历 + JD -->
+  <div class="card" id="card1">
+    <h2>你的经历描述（教育/实习/项目/技能——尽量具体，含量化数据）</h2>
     <textarea id="experience" placeholder="例：我在字节跳动实习，负责抖音推荐算法优化，通过 A/B 测试提升点击率 15%；主导了用户画像模块开发，覆盖 500 万用户。"></textarea>
-    <button onclick="enrich()">① 提取事实卡</button>
-    <div class="facts" id="facts"></div>
+    <label>目标岗位（输入完整 JD 更精准）</label>
+    <input type="text" id="target_role" placeholder="例：算法工程师（要求 Python、机器学习、推荐系统……）">
+    <label>你的技能（逗号分隔）</label>
+    <input type="text" id="skills" placeholder="例：Python, SQL, 机器学习, A/B 测试, 数据分析">
+    <br>
+    <button onclick="doEnrich()">开始：提取事实卡并校验</button>
     <div class="error" id="err1"></div>
   </div>
 
-  <div class="card" id="genCard" style="display:none">
-    <label>目标岗位（触发定向表达）</label>
-    <input type="text" id="target_role" placeholder="例：算法工程师 / 产品经理 / 数据分析师">
-    <button onclick="generate()">② 生成简历</button>
-    <button class="secondary" onclick="downloadHTML()">导出 HTML</button>
-    <button class="secondary" onclick="downloadWord()">导出 Word</button>
-    <button class="secondary" onclick="downloadPDF()">导出 PDF</button>
-    <div id="result"></div>
-    <div class="error" id="err2"></div>
+  <!-- ② 事实校验 -->
+  <div class="card hidden" id="card2">
+    <h2>事实校验（未确认信息不升级、不编造）</h2>
+    <div id="facts"></div>
+    <div class="questions hidden" id="confirmQ"></div>
+    <button class="secondary" onclick="doMatch()">下一步：JD 匹配评分</button>
+  </div>
+
+  <!-- ③ JD 匹配 -->
+  <div class="card hidden" id="card3">
+    <h2>JD 匹配度评分（五维度）</h2>
+    <div id="matchResult"></div>
+    <button class="secondary" onclick="doVersions()">下一步：生成三版本</button>
+  </div>
+
+  <!-- ④ 三版本 -->
+  <div class="card hidden" id="card4">
+    <h2>多版本生成（稳妥版 / 专业版 / 高竞争力版）</h2>
+    <div class="versions" id="verContainer"></div>
+    <div id="result" contenteditable="true" title="点击可直接编辑">（选择上方版本后在此显示完整简历，可直接编辑）</div>
+    <button class="secondary" onclick="doATS()">下一步：ATS 校验</button>
+  </div>
+
+  <!-- ⑤ ATS -->
+  <div class="card hidden" id="card5">
+    <h2>ATS 兼容性校验</h2>
+    <div id="atsResult"></div>
+    <button class="secondary" onclick="showStep(6)">下一步：导出下载</button>
+  </div>
+
+  <!-- ⑥ 导出 -->
+  <div class="card hidden" id="card6">
+    <h2>导出下载</h2>
+    <p style="font-size:13px;color:#5C534A">编辑完成后选择格式导出：</p>
+    <button onclick="downloadHTML()">导出 HTML</button>
+    <button onclick="downloadWord()">导出 Word</button>
+    <button onclick="downloadPDF()">导出 PDF</button>
+    <div class="error" id="err6"></div>
   </div>
 </div>
 
 <script>
 let currentFacts = [];
+let matchResult = null;
+let chosenVersion = 'professional';
 
-async function enrich() {
-  const raw = document.getElementById('experience').value;
-  if (!raw.trim()) { document.getElementById('err1').textContent = '请填写经历描述'; return; }
-  const r = await fetch('/api/enrich', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({raw_text: raw})
+function showStep(n) {
+  document.querySelectorAll('#steps .s').forEach(el => {
+    const s = +el.dataset.step;
+    el.className = 's ' + (s === n ? 'active' : (s < n ? 'done' : ''));
   });
-  const d = await r.json();
-  if (!d.ok) { document.getElementById('err1').textContent = d.error || '失败'; return; }
-  currentFacts = d.facts;
-  document.getElementById('facts').innerHTML = d.facts.map((f, i) =>
-    `<div class="fact"><b>事实卡 ${i+1}</b>：${escapeHtml(f.claim)}<span class="tag">证据</span>${escapeHtml(f.evidence || '')}</div>`
-  ).join('');
-  document.getElementById('genCard').style.display = 'block';
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('card' + i).classList.toggle('hidden', i !== n);
+  }
+  if (n >= 6) window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
 }
 
-async function generate() {
-  const role = document.getElementById('target_role').value;
-  const r = await fetch('/api/generate', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'markdown'})
-  });
-  const d = await r.json();
-  if (!d.ok) { document.getElementById('err2').textContent = d.error || '失败'; return; }
-  document.getElementById('result').textContent = d.resume;
+function setErr(id, msg) { document.getElementById(id).textContent = msg || ''; }
+
+async function doEnrich() {
+  setErr('err1', '');
+  const raw = document.getElementById('experience').value;
+  if (!raw.trim()) { setErr('err1', '请填写经历描述'); return; }
+  const btn = event && event.target; if (btn) btn.disabled = true;
+  try {
+    const r = await fetch('/api/enrich', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({raw_text: raw})});
+    const d = await r.json();
+    if (!d.ok) { setErr('err1', d.error || '失败'); return; }
+    currentFacts = d.facts;
+    const names = {verified:'已核实', unverified:'待确认', exaggerated:'疑似夸大'};
+    document.getElementById('facts').innerHTML = d.facts.map((f, i) => {
+      const v = f.verdict || 'unverified';
+      return `<div class="fact ${v}"><b>事实卡 ${i+1}</b>：${escapeHtml(f.claim)}<span class="badge ${v}">${names[v]||v}</span><br><span style="color:#5C534A;font-size:12px">证据：${escapeHtml(f.evidence||'（需补充证据）')}</span></div>`;
+    }).join('');
+    if (d.confirm_questions && d.confirm_questions.length) {
+      document.getElementById('confirmQ').classList.remove('hidden');
+      document.getElementById('confirmQ').innerHTML = '<b>需要你确认：</b><br>' + d.confirm_questions.map(q => '· ' + escapeHtml(q.question)).join('<br>');
+    }
+    showStep(2);
+  } catch(e) { setErr('err1', '请求失败：' + e.message); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+async function doMatch() {
+  setErr('err1', '');
+  const jdText = document.getElementById('target_role').value;
+  const skills = document.getElementById('skills').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+  try {
+    const r = await fetch('/api/match', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+      jd_title: jdText.split(/[（(\n]/)[0].slice(0, 40), jd_text: jdText,
+      skills: skills, experience: currentFacts.map(f => ({summary: f.claim})), languages: [], career_goals: []
+    })});
+    const d = await r.json();
+    matchResult = d.result;
+    const el = document.getElementById('matchResult');
+    if (d.result.scored === false) {
+      el.innerHTML = `<div class="verdict" style="color:#c0392b">⚠️ 前置门未通过：${escapeHtml(d.result.reason||'')}</div>`;
+    } else {
+      const s = d.result.scores;
+      const names = {technical:'技术技能', experience:'经验匹配', behavioral:'行为文化', alignment:'职业对齐'};
+      const loc = s.location && s.location.verdict ? s.location.verdict : '';
+      el.innerHTML = `
+        <div class="verdict">总分 ${d.result.total} —— ${escapeHtml(d.result.verdict)}（地点：${escapeHtml(loc)||'—'}）</div>
+        <div class="score-grid">
+          ${Object.entries(names).map(([k, lbl]) => `<div class="score-item"><div class="num">${s[k]??'—'}</div><div class="lbl">${lbl}</div></div>`).join('')}
+        </div>
+        <div style="margin-top:10px;font-size:13px">
+          <b>匹配项：</b>${(d.result.scores.gaps||[]).length === 0 ? '<span class="match-chip">核心技能全覆盖</span>' : '技能匹配见缺失项'} <br>
+          <b>缺失项：</b>${(d.result.gaps||[]).map(g => `<span class="gap-chip">${escapeHtml(g)}</span>`).join('') || '<span class="match-chip">无明显缺失</span>'}
+        </div>`;
+    }
+    showStep(3);
+  } catch(e) { setErr('err1', '匹配请求失败：' + e.message); }
+}
+
+async function doVersions() {
+  const role = document.getElementById('target_role').value.split(/[（(\n]/)[0].trim();
+  const content = currentFacts.map(f => f.claim).join('；');
+  try {
+    const r = await fetch('/api/versions', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content: content, target: role})});
+    const d = await r.json();
+    const v = d.versions;
+    const cards = [
+      {key:'safe', name:'稳妥版', desc:'保守如实，绝不夸大'},
+      {key:'professional', name:'专业版', desc:'行业术语，规范表达'},
+      {key:'competitive', name:'高竞争力版', desc:'量化成果，冲击力表达'},
+    ];
+    document.getElementById('verContainer').innerHTML = cards.map(c => `
+      <div class="ver-card ${c.key===chosenVersion?'selected':''}" data-key="${c.key}" onclick="pickVersion('${c.key}')">
+        <h3>${c.name} <span style="font-size:11px;color:#5C534A">${c.desc}</span></h3>
+        <p>${escapeHtml(v[c.key]||'')}</p>
+      </div>`).join('');
+    pickVersion(chosenVersion);
+    showStep(4);
+  } catch(e) { setErr('err1', '生成请求失败：' + e.message); }
+}
+
+function pickVersion(key) {
+  chosenVersion = key;
+  document.querySelectorAll('.ver-card').forEach(el => el.classList.toggle('selected', el.dataset.key === key));
+  // 用选定版本的文本填充可编辑结果区
+  fetch('/api/versions', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+    content: currentFacts.map(f => f.claim).join('；'),
+    target: document.getElementById('target_role').value.split(/[（(\n]/)[0].trim()})})
+    .then(r => r.json()).then(d => {
+      const role = document.getElementById('target_role').value.split(/[（(\n]/)[0].trim();
+      const v = d.versions;
+      document.getElementById('result').textContent = v[key] + '\n\n（目标岗位：' + role + '）';
+    });
+}
+
+async function doATS() {
+  const resumeText = document.getElementById('result').textContent;
+  try {
+    const r = await fetch('/api/ats', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({resume_text: resumeText})});
+    const d = await r.json();
+    const res = d.result || {};
+    const rate = res.pass_rate ?? res.score ?? null;
+    const cls = rate === null ? '' : (rate >= 80 ? 'ats-pass' : (rate >= 50 ? 'ats-mid' : 'ats-fail'));
+    document.getElementById('atsResult').innerHTML = `
+      <div class="ats-score ${cls}">${rate===null?'—':rate}</div>
+      <div style="font-size:13px;color:#5C534A;margin:6px 0">ATS 通过率评分（≥80 优 / 50-79 中 / &lt;50 需优化）</div>
+      <div style="font-size:13px">${(res.issues||[]).map(i => '⚠️ ' + escapeHtml(typeof i === 'string' ? i : (i.message||JSON.stringify(i)))).join('<br>') || '✅ 未发现明显 ATS 问题'}</div>`;
+    showStep(5);
+  } catch(e) { setErr('err6', 'ATS 请求失败：' + e.message); }
+}
+
+function genBody() {
+  const role = document.getElementById('target_role').value.split(/[（(\n]/)[0].trim();
+  return { experiences: currentFacts, target_role: role, resume_text: document.getElementById('result').textContent };
 }
 
 async function downloadHTML() {
-  const role = document.getElementById('target_role').value;
-  const r = await fetch('/api/generate', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'html'})
-  });
+  const body = genBody();
+  const r = await fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'html'})});
   const d = await r.json();
-  if (!d.ok) { document.getElementById('err2').textContent = d.error || '失败'; return; }
-  const blob = new Blob([d.resume], {type: 'text/html'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '我的简历.html';
-  a.click();
+  if (!d.ok) { setErr('err6', d.error || '失败'); return; }
+  const blob = new Blob([d.resume], {type:'text/html'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.html'; a.click();
 }
 
 async function downloadWord() {
-  const role = document.getElementById('target_role').value;
-  const r = await fetch('/api/generate', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'docx'})
-  });
-  if (!r.ok) { document.getElementById('err2').textContent = 'Word 导出失败'; return; }
+  const body = genBody();
+  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'docx'})});
+  if (!r.ok) { setErr('err6', 'Word 导出失败'); return; }
   const blob = await r.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '我的简历.docx';
-  a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.docx'; a.click();
 }
 
 async function downloadPDF() {
-  const role = document.getElementById('target_role').value;
-  const r = await fetch('/api/generate', {
-    method: 'POST', headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({experiences: currentFacts, target_role: role, format: 'pdf'})
-  });
-  if (!r.ok) { document.getElementById('err2').textContent = 'PDF 导出失败'; return; }
+  const body = genBody();
+  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'pdf'})});
+  if (!r.ok) { setErr('err6', 'PDF 导出失败'); return; }
   const blob = await r.blob();
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '我的简历.pdf';
-  a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.pdf'; a.click();
 }
 
 function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

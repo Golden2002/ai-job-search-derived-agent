@@ -1,0 +1,13 @@
+flask<4,>=3.0
+gunicorn<24,>=23
+fastmcp>=2
+
+[dev]
+pytest<9,>=8
+
+[render]
+playwright>=1.40
+
+[resume_extract]
+pypdf<6,>=5.0
+python-docx<2,>=1.1

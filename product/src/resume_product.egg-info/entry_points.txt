@@ -1,0 +1,2 @@
+[console_scripts]
+resume-mcp = resume_product.mcp_server:main

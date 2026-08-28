@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: resume-product
+Version: 0.1.0
+Summary: 通用简历制作 Agent 独立产品（复用 medical-resume-agent 引擎 + ai-job-search 工作流）——经历→校验→定向表达→多格式导出 + MCP 插件
+Requires-Python: >=3.11
+Requires-Dist: flask<4,>=3.0
+Requires-Dist: gunicorn<24,>=23
+Requires-Dist: fastmcp>=2
+Provides-Extra: dev
+Requires-Dist: pytest<9,>=8; extra == "dev"
+Provides-Extra: resume-extract
+Requires-Dist: pypdf<6,>=5.0; extra == "resume-extract"
+Requires-Dist: python-docx<2,>=1.1; extra == "resume-extract"
+Provides-Extra: render
+Requires-Dist: playwright>=1.40; extra == "render"
