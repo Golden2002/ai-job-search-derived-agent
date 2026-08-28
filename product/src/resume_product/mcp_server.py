@@ -155,6 +155,45 @@ def build_server() -> "FastMCP":
         return execute("portal_search", {
             "portal_name": portal_name, "query": query, "portal_path": portal_path})
 
+    # ═══════════════════════════════════════════════════════════
+    # §3.116 ⭐ R3 MCP 三原语补全：resources + prompts
+    # ═══════════════════════════════════════════════════════════
+
+    @mcp.resource("resume-templates://list")
+    def resume_templates_resource() -> str:
+        """简历模板清单（read-only 资源）。"""
+        return execute("list_templates", {})
+
+    @mcp.resource("resume-role-packs://list")
+    def resume_role_packs_resource() -> str:
+        """角色包清单（read-only 资源）。"""
+        return execute("list_role_packs", {})
+
+    @mcp.prompt()
+    def resume_build_workflow(target_role: str) -> str:
+        """简历生成工作流模板（经历→事实校验→定向→三档→导出）。"""
+        return (
+            f"请按简历生成流程制作简历（目标岗位：{target_role}）：\n"
+            "1. 经历拆解：原始经历 → 方法/工具/角色/交付物 → 可迁移能力\n"
+            "2. 事实校验：未确认信息不升级、不编造（ClaimGate 12 项检查）\n"
+            "3. JD 匹配：五维评分 + 匹配项/缺失项标注\n"
+            "4. 定向表达：STAR 量化（S/T/A/R 分段 + 数据）\n"
+            "5. 多版本：稳妥/专业/高竞争力三档横向对比\n"
+            "6. 导出：Word/PDF/HTML（ATS 兼容校验）\n"
+        )
+
+    @mcp.prompt()
+    def resume_ats_report(ats_json: str) -> str:
+        """ATS 兼容性报告模板。"""
+        return (
+            "请根据 ATS 校验结果生成报告：\n"
+            "1. 关键词覆盖率（命中/缺失清单）\n"
+            "2. 阅读顺序（联系方式位置）\n"
+            "3. 量化成果检查\n"
+            "4. 改进建议（补关键词/补量化/调顺序）\n\n"
+            f"ATS 数据：{ats_json}\n"
+        )
+
     return mcp
 
 
