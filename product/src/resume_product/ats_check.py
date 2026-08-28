@@ -71,3 +71,62 @@ def ats_check(resume_text: str) -> Dict[str, Any]:
     score = round(passed / max(1, len(checks)) * 100)
     return {"score": score, "checks": checks, "issues": issues,
             "passed_count": passed, "total_count": len(checks)}
+
+
+# §3.116 ⭐ R-R4 JD 关键词覆盖率 + 阅读顺序（顶尖 ATS：R-03 达标）
+_JD_STOPWORDS = {"要求", "负责", "相关", "岗位", "工作", "经验", "以上", "优先",
+                 "熟悉", "掌握", "能力", "任职", "职责", "进行", "具有", "具备",
+                 "岗位职责", "任职要求", "我们", "团队", "公司"}
+
+
+def _extract_jd_keywords(jd_text: str) -> List[str]:
+    """从 JD 提取关键词（中文分词，过滤停用词）。"""
+    try:
+        from .job_evaluation import _tokenize
+        tokens = _tokenize(jd_text or "")
+    except Exception:
+        tokens = (jd_text or "").split()
+    seen = []
+    for t in tokens:
+        if len(t) >= 2 and t not in _JD_STOPWORDS and t not in seen:
+            seen.append(t)
+    return seen
+
+
+def _check_reading_order(t: str) -> Dict[str, Any]:
+    """阅读顺序检测：联系方式靠前（ATS 标准）。"""
+    issues = []
+    # 联系方式位置（邮箱或手机号）
+    pos = t.find("@")
+    if pos < 0:
+        pos = t.find("1")
+    if pos > 0 and pos > len(t) * 0.3:
+        issues.append("联系方式位置靠后（建议放在简历顶部——ATS 优先解析）")
+    return {"issues": issues, "passed": not issues}
+
+
+def ats_check_with_jd(resume_text: str, jd_text: str = "") -> Dict[str, Any]:
+    """§3.116 ⭐ R-R4 ATS 校验 + JD 关键词覆盖率 + 阅读顺序。
+
+    Returns: ats_check 结果 + jd_coverage（覆盖率/命中/缺失）+ reading_order。
+    """
+    base = ats_check(resume_text)
+    if not jd_text or not jd_text.strip():
+        return base
+    keywords = _extract_jd_keywords(jd_text)
+    resume_tokens = set()
+    try:
+        from .job_evaluation import _tokenize
+        resume_tokens = set(_tokenize(resume_text or ""))
+    except Exception:
+        pass
+    matched = [k for k in keywords if k in resume_tokens or k in (resume_text or "")]
+    missing = [k for k in keywords if k not in matched][:15]
+    coverage = round(len(matched) / max(1, len(keywords)) * 100)
+    base["jd_coverage"] = {
+        "coverage": coverage, "matched": matched, "missing": missing,
+        "total_keywords": len(keywords),
+        "note": "覆盖率 = JD 关键词在简历中命中的比例（ATS 关键词匹配核心指标）",
+    }
+    base["reading_order"] = _check_reading_order(resume_text or "")
+    return base
