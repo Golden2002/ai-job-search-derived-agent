@@ -55,6 +55,106 @@ def build_server() -> "FastMCP":
         return json.dumps({"ok": True, "tools": list_tool_schemas()},
                           ensure_ascii=False)
 
+    # ---- 基线对齐补全工具（批次 A-E · 20 工具全量暴露）----
+
+    @mcp.tool()
+    def evaluate_fit(posting: dict, profile: dict) -> str:
+        """职位匹配度五维度评估评分（资格门+语言门+技术/经验/行为/地点/职业对齐）。"""
+        return execute("evaluate_fit", {"posting": posting, "profile": profile})
+
+    @mcp.tool()
+    def trim_experience(entries: list, target_role: str = "", max_items: int = 5) -> str:
+        """相关性加权裁剪（相关性+独特性+依赖度，非机械时间裁剪）。"""
+        return execute("trim_experience", {
+            "entries": entries, "target_role": target_role, "max_items": max_items})
+
+    @mcp.tool()
+    def rank_postings(postings: list, profile: dict) -> str:
+        """多职位批量评分排序。"""
+        return execute("rank_postings", {"postings": postings, "profile": profile})
+
+    @mcp.tool()
+    def salary_benchmark(role: str = "", region: str = "", years: float = 0,
+                         sources: list = None, expected: float = None) -> str:
+        """薪资基准对比（分位区间 + 低于/符合/高于市场结论）。"""
+        return execute("salary_benchmark", {
+            "role": role, "region": region, "years": years,
+            "sources": sources, "expected": expected})
+
+    @mcp.tool()
+    def prepare_interview(role: str = "", company: str = "", profile: dict = None,
+                          jd_text: str = "") -> str:
+        """面试准备（STAR 故事 + 高频难题 + 反问清单）。"""
+        return execute("prepare_interview", {
+            "role": role, "company": company, "profile": profile, "jd_text": jd_text})
+
+    @mcp.tool()
+    def simulate_interview(role: str = "", profile: dict = None, rounds: int = 1) -> str:
+        """STAR 框架模拟面试（问答结构）。"""
+        return execute("simulate_interview", {
+            "role": role, "profile": profile, "rounds": rounds})
+
+    @mcp.tool()
+    def track_application(company: str = "", role: str = "", source: str = "",
+                          deadline: str = "") -> str:
+        """记录一条求职申请（状态机 applied→interview→offer→rejected→withdrawn）。"""
+        return execute("track_application", {
+            "company": company, "role": role, "source": source, "deadline": deadline})
+
+    @mcp.tool()
+    def generate_followup(entry: dict, days_since: int = 7) -> str:
+        """生成跟进信（按 7/14/21 天分档）。"""
+        return execute("generate_followup", {"entry": entry, "days_since": days_since})
+
+    @mcp.tool()
+    def analyze_skill_gaps(jobs: list, profile: dict) -> str:
+        """技能缺口分析 + 学习路径建议（频率热图 + 权重）。"""
+        return execute("analyze_skill_gaps", {"jobs": jobs, "profile": profile})
+
+    @mcp.tool()
+    def claim_review(claims: list, evidence: dict = None) -> str:
+        """事实校验（verified/unverified/exaggerated，不静默升级）。"""
+        return execute("claim_review", {"claims": claims, "evidence": evidence})
+
+    @mcp.tool()
+    def generate_versions(content: str = "", target: str = "") -> str:
+        """多版本输出（稳妥版/专业版/高竞争力版）。"""
+        return execute("generate_versions", {"content": content, "target": target})
+
+    @mcp.tool()
+    def decompose_experience(raw_experience: str = "", target_direction: str = "") -> str:
+        """经历拆解六要素（研究对象/方法/工具/角色/交付物/可迁移能力）。"""
+        return execute("decompose_experience", {
+            "raw_experience": raw_experience, "target_direction": target_direction})
+
+    @mcp.tool()
+    def tag_experience(experience: dict) -> str:
+        """经历标签化（能力分类体系）。"""
+        return execute("tag_experience", {"experience": experience})
+
+    @mcp.tool()
+    def list_templates() -> str:
+        """列出简历模板（moderncv_banking/resume_html/generic_md 等）。"""
+        return execute("list_templates", {})
+
+    @mcp.tool()
+    def register_template(template_id: str = "", name: str = "", format: str = "",
+                          path: str = "") -> str:
+        """注册自定义模板（校验文件存在 + 格式合法）。"""
+        return execute("register_template", {
+            "template_id": template_id, "name": name, "format": format, "path": path})
+
+    @mcp.tool()
+    def compile_latex(tex_path: str = "", workdir: str = "") -> str:
+        """LaTeX 编译链 + 视觉校验（lualatex，2 页硬要求）。"""
+        return execute("compile_latex", {"tex_path": tex_path, "workdir": workdir})
+
+    @mcp.tool()
+    def portal_search(portal_name: str = "", query: str = "", portal_path: str = "") -> str:
+        """职位门户搜索（可扩展适配器架构）。"""
+        return execute("portal_search", {
+            "portal_name": portal_name, "query": query, "portal_path": portal_path})
+
     return mcp
 
 
