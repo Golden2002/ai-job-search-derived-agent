@@ -1,0 +1,551 @@
+{
+  "scene_count": 4,
+  "scenes": [
+    {
+      "id": "baoyan",
+      "label": "保研升学",
+      "hint": "面向推免，突出科研、竞赛、论文、绩点排名",
+      "sub_scenes": [
+        {
+          "id": "baoyan_clinical",
+          "label": "临床医学",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 5
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 5
+            },
+            {
+              "id": "research",
+              "label": "科研经历",
+              "fields": 7
+            },
+            {
+              "id": "paper",
+              "label": "论文发表",
+              "fields": 4
+            },
+            {
+              "id": "competition",
+              "label": "竞赛获奖",
+              "fields": 3
+            },
+            {
+              "id": "english",
+              "label": "英语成绩",
+              "fields": 2
+            },
+            {
+              "id": "skills",
+              "label": "技能证书",
+              "fields": 2
+            }
+          ]
+        },
+        {
+          "id": "baoyan_cs",
+          "label": "计算机",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 4
+            },
+            {
+              "id": "project",
+              "label": "项目/科研经历",
+              "fields": 3
+            },
+            {
+              "id": "paper",
+              "label": "论文发表",
+              "fields": 1
+            },
+            {
+              "id": "competition",
+              "label": "竞赛获奖",
+              "fields": 1
+            },
+            {
+              "id": "english",
+              "label": "英语成绩",
+              "fields": 1
+            },
+            {
+              "id": "skills",
+              "label": "技能",
+              "fields": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kaoyan",
+      "label": "考研复试",
+      "hint": "面向复试，突出报考信息、初试成绩、科研潜质、读研规划",
+      "sub_scenes": [
+        {
+          "id": "kaoyan_general",
+          "label": "通用",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 2
+            },
+            {
+              "id": "apply",
+              "label": "报考信息",
+              "fields": 4
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 3
+            },
+            {
+              "id": "research",
+              "label": "科研/项目经历",
+              "fields": 3
+            },
+            {
+              "id": "award",
+              "label": "获奖与荣誉",
+              "fields": 1
+            },
+            {
+              "id": "skills",
+              "label": "技能",
+              "fields": 1
+            },
+            {
+              "id": "plan",
+              "label": "读研规划",
+              "fields": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "abroad",
+      "label": "出国留学",
+      "hint": "面向海外申请，学术 CV：科研、论文、GPA、语言、推荐信",
+      "sub_scenes": [
+        {
+          "id": "abroad_general",
+          "label": "通用",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 4
+            },
+            {
+              "id": "research",
+              "label": "科研经历",
+              "fields": 3
+            },
+            {
+              "id": "paper",
+              "label": "论文发表",
+              "fields": 1
+            },
+            {
+              "id": "internship",
+              "label": "实习经历",
+              "fields": 2
+            },
+            {
+              "id": "language",
+              "label": "语言成绩",
+              "fields": 2
+            },
+            {
+              "id": "honor",
+              "label": "荣誉与推荐",
+              "fields": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "job",
+      "label": "求职",
+      "hint": "面向就业，细分岗位：技术岗 6 类 + 非技术岗 5 类",
+      "sub_scenes": [
+        {
+          "id": "backend",
+          "label": "技术岗·后端开发",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 4
+            },
+            {
+              "id": "core",
+              "label": "核心技能",
+              "fields": 4
+            },
+            {
+              "id": "arch",
+              "label": "架构与工程能力",
+              "fields": 3
+            },
+            {
+              "id": "work",
+              "label": "工作/项目经历",
+              "fields": 3
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 2
+            }
+          ]
+        },
+        {
+          "id": "frontend",
+          "label": "技术岗·前端开发",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心技能",
+              "fields": 3
+            },
+            {
+              "id": "ability",
+              "label": "工程与优化",
+              "fields": 3
+            },
+            {
+              "id": "work",
+              "label": "工作/项目经历",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "algorithm",
+          "label": "技术岗·算法工程师",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "算法基础",
+              "fields": 3
+            },
+            {
+              "id": "engineer",
+              "label": "工程能力",
+              "fields": 3
+            },
+            {
+              "id": "competition",
+              "label": "竞赛/论文",
+              "fields": 2
+            },
+            {
+              "id": "work",
+              "label": "工作/项目经历",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 2
+            }
+          ]
+        },
+        {
+          "id": "data",
+          "label": "技术岗·数据分析",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心技能",
+              "fields": 3
+            },
+            {
+              "id": "business",
+              "label": "业务能力",
+              "fields": 3
+            },
+            {
+              "id": "work",
+              "label": "工作/项目经历",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "qa",
+          "label": "技术岗·测试开发",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心技能",
+              "fields": 3
+            },
+            {
+              "id": "quality",
+              "label": "质量保障",
+              "fields": 2
+            },
+            {
+              "id": "work",
+              "label": "工作/项目经历",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "devops",
+          "label": "技术岗·运维/DevOps",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心技能",
+              "fields": 3
+            },
+            {
+              "id": "reliability",
+              "label": "稳定性工程",
+              "fields": 3
+            },
+            {
+              "id": "work",
+              "label": "工作/项目经历",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "product",
+          "label": "非技术岗·产品经理",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心能力",
+              "fields": 2
+            },
+            {
+              "id": "project",
+              "label": "产品项目",
+              "fields": 3
+            },
+            {
+              "id": "work",
+              "label": "实习/工作经历",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "operation",
+          "label": "非技术岗·运营",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心能力",
+              "fields": 2
+            },
+            {
+              "id": "project",
+              "label": "运营案例",
+              "fields": 2
+            },
+            {
+              "id": "work",
+              "label": "实习/工作经历",
+              "fields": 1
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "marketing",
+          "label": "非技术岗·市场营销/品牌",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心能力",
+              "fields": 2
+            },
+            {
+              "id": "project",
+              "label": "营销案例",
+              "fields": 2
+            },
+            {
+              "id": "work",
+              "label": "实习/工作经历",
+              "fields": 1
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "hr",
+          "label": "非技术岗·人力资源",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心能力",
+              "fields": 2
+            },
+            {
+              "id": "work",
+              "label": "工作经历",
+              "fields": 3
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        },
+        {
+          "id": "sales",
+          "label": "非技术岗·销售/商务",
+          "stages": [
+            {
+              "id": "basic",
+              "label": "基本信息",
+              "fields": 3
+            },
+            {
+              "id": "core",
+              "label": "核心能力",
+              "fields": 1
+            },
+            {
+              "id": "performance",
+              "label": "业绩",
+              "fields": 2
+            },
+            {
+              "id": "work",
+              "label": "工作经历",
+              "fields": 2
+            },
+            {
+              "id": "education",
+              "label": "教育背景",
+              "fields": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "job_positions": [
+    "技术岗·后端开发",
+    "技术岗·前端开发",
+    "技术岗·算法工程师",
+    "技术岗·数据分析",
+    "技术岗·测试开发",
+    "技术岗·运维/DevOps",
+    "非技术岗·产品经理",
+    "非技术岗·运营",
+    "非技术岗·市场营销/品牌",
+    "非技术岗·人力资源",
+    "非技术岗·销售/商务"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "docx": {
+    "columns": 1,
+    "css_length": 523,
+    "distinct_styles": 5,
+    "fonts": [
+      "宋体",
+      "黑体"
+    ],
+    "footers": 0,
+    "headers": 0,
+    "images": 0,
+    "paragraphs": 5,
+    "tables": 0
+  },
+  "pdf": {
+    "columns": 2,
+    "css_length": 157,
+    "paragraphs": 6,
+    "pdf_engine": "pdfplumber"
+  },
+  "xlsx": {
+    "columns": 3,
+    "css_length": 108,
+    "merged_cells": 1,
+    "paragraphs": 4,
+    "xlsx_engine": "openpyxl"
+  },
+  "image": {
+    "columns": 2,
+    "css_length": 157,
+    "ocr_engine": "rapidocr",
+    "paragraphs": 6
+  }
+}

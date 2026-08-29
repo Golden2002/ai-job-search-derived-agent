@@ -22,13 +22,31 @@ from . import llm_client
 
 # 语言规范模块（PAEG 工具生态 14.1——独立仓库同步接入）
 try:
+    from paeg_lang_style import gate_short as _lang_gate
     from paeg_lang_style import fix_known_gaffes as _lang_fix
     _HAS_LANG_STYLE = True
 except ImportError:
     _HAS_LANG_STYLE = False
 
+    def _lang_gate(text: str, context: str = "") -> str:
+        return text
+
     def _lang_fix(text: str) -> str:
         return text
+
+
+def _lang_l0(text: str) -> str:
+    """L0 语言校对：gate_short（快路径） + fix_known_gaffes 兜底收口。
+
+    缺失 paeg_lang_style 时优雅降级为原文（不抛异常、不阻塞生成链路）。
+    """
+    if not text or not _HAS_LANG_STYLE:
+        return text
+    try:
+        out = _lang_gate(text)
+        return _lang_fix(out if isinstance(out, str) else text)
+    except Exception:
+        return _lang_fix(text)
 
 # §3.116 ⭐ R-09 融合修复：medical-resume-agent 引擎已**本地移植**（不重复造轮子）——
 # claim_gate/confirmation_gate/canonical_experience/multi_version/capability_taxonomy
@@ -132,11 +150,11 @@ class ResumeEngine:
             claim = fact.get("claim", "")
             ev = fact.get("evidence", "")
             if claim:
-                # 语言规范模块（14.1 paeg_lang_style）：病句/口语修正后再输出
-                claim = _lang_fix(claim)
+                # 语言规范模块（14.1 paeg_lang_style）：gate_short/fix_known_gaffes L0 校对后再输出
+                claim = _lang_l0(claim)
                 lines.append(f"{i}. {claim}")
                 if ev and ev != claim:
-                    lines.append(f"   - 证据：{_lang_fix(ev)}")
+                    lines.append(f"   - 证据：{_lang_l0(ev)}")
         return "\n".join(lines)
 
     def to_html(self, facts: List[Dict[str, str]],
@@ -150,7 +168,8 @@ class ResumeEngine:
             if line.startswith("# "):
                 body += f"<h1>{_h.escape(line[2:])}</h1>"
             elif line.startswith("**"):
-                body += f"<p><strong>{_h.escape(line.strip('*'))}</strong></p>"
+                # 去掉加粗标记（**适配方向**：…），避免 ** 泄入 HTML
+                body += f"<p><strong>{_h.escape(line.replace('**', ''))}</strong></p>"
             elif line.strip().startswith("- "):
                 body += f"<li>{_h.escape(line.strip()[2:])}</li>"
             elif line.strip() and line.strip()[0].isdigit() and "." in line[:4]:
@@ -283,6 +302,71 @@ def generate_resume(experiences: List[Dict[str, str]],
     if format == "pdf":
         return eng.to_pdf(experiences, target_role)
     return eng.compose(experiences, target_role)
+
+
+def resume_text_to_docx(resume_text: str, target_role: str = "",
+                        out_path: str = "") -> str:
+    """对话式收集的简历文本（markdown-ish）→ Word 简历文件。
+
+    前端三栏对话式收集产出的 `_resumeText`（`### 小节` + 内容行）直接渲染为 docx，
+    避免 /api/export 只认 experiences 而丢弃对话收集内容（前端契约对齐）。
+
+    Returns: 生成的 .docx 文件路径（python-docx 缺失时降级为 .txt）。
+    """
+    try:
+        from docx import Document
+        from docx.shared import Pt, RGBColor, Cm
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+    except ImportError:
+        import tempfile
+        if not out_path:
+            out_path = os.path.join(tempfile.gettempdir(), "resume_plain.txt")
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(resume_text or "")
+        return out_path
+
+    import tempfile
+    doc = Document()
+    for section in doc.sections:
+        section.top_margin = Cm(2.0)
+        section.bottom_margin = Cm(2.0)
+        section.left_margin = Cm(2.5)
+        section.right_margin = Cm(2.5)
+
+    # 标题（居中）
+    title = doc.add_paragraph()
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = title.add_run(target_role or "个人简历")
+    run.font.size = Pt(20)
+    run.bold = True
+    run.font.color.rgb = RGBColor(0x1F, 0x1B, 0x16)
+    doc.add_paragraph()
+
+    for raw in (resume_text or "").split("\n"):
+        line = raw.rstrip()
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith("# ") or s.startswith("## ") or s.startswith("### "):
+            h = doc.add_paragraph()
+            hr = h.add_run(s.lstrip("#").strip())
+            hr.font.size = Pt(13)
+            hr.bold = True
+            hr.font.color.rgb = RGBColor(0x1F, 0x1B, 0x16)
+        elif s.startswith("**"):
+            p = doc.add_paragraph()
+            pr = p.add_run(s.replace("**", ""))
+            pr.font.size = Pt(10)
+            pr.font.color.rgb = RGBColor(0x5C, 0x53, 0x4A)
+        else:
+            p = doc.add_paragraph()
+            p.add_run(s)
+            p.paragraph_format.space_after = Pt(4)
+
+    if not out_path:
+        out_path = os.path.join(tempfile.gettempdir(), "resume.docx")
+    doc.save(out_path)
+    return out_path
 
 
 def list_role_packs() -> List[str]:

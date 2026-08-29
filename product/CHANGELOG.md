@@ -2,6 +2,45 @@
 
 本文件记录本工具的更新路径：版本、改动模块、测试数、关联需求文档。
 
+## v1.8.5 (2026-08-30) — 网页产品浏览器端 E2E 补齐四格式导入（xlsx/pdf/image）
+
+**更新路径**：product/tests/test_e2e_browser.py + product/test_artifacts/README.md
+
+- v1.8.4 的浏览器端 E2E 只覆盖 docx 导入；本轮补齐四格式导入的浏览器回归缺口：
+  - 导入 xlsx（上传 `.xlsx` → `/api/import-xlsx`，openpyxl 单元格样式 → HTML 表格）
+  - 导入 pdf（上传 `.pdf` → `/api/import-pdf`，pdfplumber 字符级 → CSS/HTML）
+  - 导入 image（上传 `.png` → `/api/import-image`，OCR 用 mock 跳过 rapidocr 慢路径，验证前端分派契约）
+- 测试 +3（E2E 6 → 9 用例），全量 445 → 448 passed + 143 subtests
+
+## v1.8.4 (2026-08-30) — 网页产品浏览器端 E2E 回归（补齐前端自动化缺口）
+
+**更新路径**：product/tests/test_e2e_browser.py（新增）+ product/test_artifacts/README.md
+
+- 新增浏览器端 E2E（Playwright + 后台线程起 `create_app()` 真实 HTTP + 系统 Chrome/Edge 兜底），
+  首次覆盖 `product/web/index.html` 三栏前端（导航/对话/汇总）与后端契约的真实浏览器回归：
+  - 场景卡片加载（`/api/scene-cards` → 左侧导航渲染场景/子场景/阶段）
+  - 对话收集（LLM 降级 → `/api/chat` 返回 llm:false → 前端 `_fallbackAsk` 规则式填入首个空字段）
+  - 卡片 chip 收集（multi 字段点选 → 填充/进度/汇总/圆点 partial）
+  - 生成预览（`generateResume()` → 预览模态框 + 结构化小节 + 三模板切换）
+  - 导出 docx（`/api/export` 真实 docx 字节流契约）
+  - 导入 docx（上传 `.docx` → `/api/import-docx` 解析 → 「已还原排版」）
+- LLM 用 monkeypatch 替换为确定性降级（返回空串），不跑真实 PDF 渲染，6 用例 ~5.2s 秒级完成
+- 未装 playwright/Chrome/Edge 时 6 用例自动 skip，不影响其余用例
+- 测试 +6（全量 439 → 445 passed + 143 subtests）
+
+## v1.8.3 (2026-08-30) — 独立接入 LLM（环境变量，对齐主项目配置约定）
+
+**更新路径**：product/src/resume_product/llm_client.py + product/.env.example（新增）
+
+- `llm_client` 配置发现优先级对齐主项目 llm_api.py：
+  1. `PAEG_API_KEY`（+`PAEG_API_BASE`/`PAEG_MODEL`，主项目自定义）
+  2. `DEEPSEEK_API_KEY`（→ DeepSeek）
+  3. opencode auth.json（项目 `secret/auth.json` 优先 → `~/.local/share` / `~/.config` / `%APPDATA%` 系统级；同时识别 `key` 与 `api_key` 字段）
+- 新增 `.env` 自动加载（无第三方依赖的轻量实现，独立运行时读取 `DEEPSEEK_API_KEY`）
+- 支持 `PAEG_API_BASE`/`DEEPSEEK_API_URL` → chat/completions 端点归一化；旧模型别名 `deepseek-reasoner` → `deepseek-v4-flash`
+- 新增 `.env.example` 说明文档（对齐主项目同一套约定）
+- 实测：`/api/chat` 对话式收集返回 `llm: true` + 正确实体抽取（姓名/院校/专业/方向）+ 枚举追问
+
 ## v1.8.2 (2026-08-29) — PDF/Excel 简历上传 → 排版还原（Oracle 多格式改造完整实施）
 
 **更新路径**：product/src/resume_product/render/{pdf_import.py, xlsx_import.py}（新增）+ executor.py + mcp_server.py + api.py + web/index.html + product/tests/test_pdf_xlsx_import.py

@@ -39,6 +39,41 @@ from .skill_gap import analyze_gaps
 
 _DEMO_DIR = Path(__file__).resolve().parent.parent.parent / "web"
 
+_SCENE_PATH = Path(__file__).resolve().parent / "data" / "scene_cards.json"
+
+
+def load_scenes() -> list:
+    """加载分场景卡片（scene_cards.json → scenes 列表）。"""
+    try:
+        return json.loads(_SCENE_PATH.read_text(encoding="utf-8")).get("scenes", [])
+    except Exception:
+        return []
+
+
+def find_stage(stage_id: str, scene_id: str = "", sub_scene_id: str = "") -> dict | None:
+    """按 (scene_id, sub_scene_id, stage_id) 精确定位 stage；缺省时全局首匹配。
+
+    stage_id（如 basic/education/work/core）在多个场景中复用，**不全局唯一**；
+    前端带 scene_id / sub_scene_id 时优先按上下文定位，避免对话收集取到错误场景的字段。
+    """
+    if scene_id or sub_scene_id:
+        for s in load_scenes():
+            if scene_id and s.get("id") != scene_id:
+                continue
+            for ss in s.get("sub_scenes", []):
+                if sub_scene_id and ss.get("id") != sub_scene_id:
+                    continue
+                for st in ss.get("stages", []):
+                    if st.get("id") == stage_id:
+                        return st
+        return None
+    for s in load_scenes():
+        for ss in s.get("sub_scenes", []):
+            for st in ss.get("stages", []):
+                if st.get("id") == stage_id:
+                    return st
+    return None
+
 
 def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__, static_folder=str(_DEMO_DIR), static_url_path="/web")
@@ -60,21 +95,6 @@ def create_app(config: dict | None = None) -> Flask:
             return jsonify({"ok": True, **_json.loads(p.read_text(encoding="utf-8"))})
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:200]}), 500
-
-    def _load_scenes():
-        p = Path(__file__).resolve().parent / "data" / "scene_cards.json"
-        try:
-            return json.loads(p.read_text(encoding="utf-8")).get("scenes", [])
-        except Exception:
-            return []
-
-    def _find_stage(stage_id):
-        for s in _load_scenes():
-            for ss in s.get("sub_scenes", []):
-                for st in ss.get("stages", []):
-                    if st["id"] == stage_id:
-                        return st
-        return None
 
     def _build_collect_system(stage, collected):
         """构建收集助手 system prompt（场景字段约束 → LLM 追问 + 实体抽取）。"""
@@ -103,10 +123,12 @@ def create_app(config: dict | None = None) -> Flask:
         data = request.get_json(force=True) or {}
         message = data.get("message", "")
         stage_id = data.get("stage_id", "")
+        scene_id = data.get("scene_id", "")
+        sub_scene_id = data.get("sub_scene_id", "")
         collected = data.get("collected", {}) or {}
         if not message:
             return jsonify({"ok": False, "error": "缺少 message"}), 400
-        stage = _find_stage(stage_id)
+        stage = find_stage(stage_id, scene_id, sub_scene_id)
         if stage is None:
             return jsonify({"ok": False, "error": "未知 stage_id"}), 400
         system = _build_collect_system(stage, collected)
@@ -290,16 +312,18 @@ def create_app(config: dict | None = None) -> Flask:
         data = request.get_json(force=True) or {}
         experiences = data.get("experiences", [])
         target_role = data.get("target_role", "")
+        resume_text = (data.get("resume_text", "") or "").strip()
         fmt = data.get("format", "docx")
         template = data.get("template", "classic")
         custom_css = data.get("custom_css")
         if fmt not in ("docx", "pdf"):
             return jsonify({"ok": False, "error": f"不支持的格式: {fmt}"}), 400
         if fmt == "pdf":
-            from .core import generate_resume as _gen_md
-            md = _gen_md(experiences, target_role=target_role, format="markdown")
             from .render.render_pdf import render_markdown_to_pdf
             import tempfile
+            # 对话式收集的 resume_text 优先（前端 downloadPDF 契约），否则由 experiences 生成
+            md = resume_text if resume_text else generate_resume(
+                experiences, target_role=target_role, format="markdown")
             path = os.path.join(tempfile.gettempdir(), "resume_export.pdf")
             try:
                 path = render_markdown_to_pdf(md, path, template=template,
@@ -312,7 +336,12 @@ def create_app(config: dict | None = None) -> Flask:
                                  download_name="我的简历.pdf",
                                  mimetype="application/pdf")
             return jsonify({"ok": False, "error": "PDF 未生成"}), 500
-        path = generate_resume(experiences, target_role=target_role, format=fmt)
+        if resume_text:
+            # 对话式收集的 resume_text 优先（前端 downloadWord 契约）
+            from .core import resume_text_to_docx
+            path = resume_text_to_docx(resume_text, target_role=target_role)
+        else:
+            path = generate_resume(experiences, target_role=target_role, format=fmt)
         if isinstance(path, str) and path.endswith("." + fmt):
             name = f"我的简历.{fmt}"
             if fmt == "docx":
@@ -462,3 +491,7 @@ def create_app(config: dict | None = None) -> Flask:
         return "resume-product 运行中（前端待构建）"
 
     return app
+
+
+if __name__ == "__main__":
+    create_app().run(host="0.0.0.0", port=5000, debug=False)

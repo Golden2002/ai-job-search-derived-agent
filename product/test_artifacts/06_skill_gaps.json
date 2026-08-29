@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "result": {
+    "heatmap": {
+      "go": {
+        "count": 1,
+        "provenance": [
+          "recorded"
+        ],
+        "weight": 0.3
+      },
+      "kubernetes": {
+        "count": 1,
+        "provenance": [
+          "inferred"
+        ],
+        "weight": 0.4
+      }
+    },
+    "learning_plan": [
+      {
+        "note": "建议补充学习资源（可注入 chat_fn 联网检索）",
+        "priority": 1,
+        "skill": "kubernetes",
+        "weight": 0.4
+      },
+      {
+        "note": "建议补充学习资源（可注入 chat_fn 联网检索）",
+        "priority": 2,
+        "skill": "go",
+        "weight": 0.3
+      }
+    ],
+    "skipped_blank_fit": 0,
+    "skipped_no_gaps": 0
+  }
+}

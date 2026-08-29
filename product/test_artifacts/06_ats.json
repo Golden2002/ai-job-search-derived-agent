@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "result": {
+    "checks": [
+      {
+        "id": "headings",
+        "passed": true
+      },
+      {
+        "id": "no_table",
+        "passed": true
+      },
+      {
+        "id": "keywords",
+        "passed": true
+      },
+      {
+        "id": "quantified",
+        "passed": true
+      },
+      {
+        "id": "contact_info",
+        "passed": true
+      }
+    ],
+    "issues": [],
+    "passed_count": 5,
+    "score": 100,
+    "total_count": 5
+  }
+}

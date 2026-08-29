@@ -14,7 +14,8 @@ UPSTREAM_SLUG = "MadsLorentzen/ai-job-search"
 
 def git(root: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", *args], cwd=root, check=True, capture_output=True, text=True
+        ["git", *args], cwd=root, check=True, capture_output=True,
+        text=True, encoding="utf-8", errors="replace",
     ).stdout
 
 
@@ -58,6 +59,7 @@ class TriageRepoFixture(unittest.TestCase):
         return subprocess.run(
             [sys.executable, str(self.root / "tools" / "upstream_triage.py"), *args],
             cwd=self.root, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
         )
 
 

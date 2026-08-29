@@ -81,7 +81,11 @@ def build_html(resume_md: str, template: str = "classic",
         if line.startswith("# "):
             title = line[2:].strip()
         elif line.startswith("**适配方向**"):
-            adapt = f'<div class="r-adapt">{_esc(line.strip("*").strip())}</div>'
+            adapt = f'<div class="r-adapt">{_esc(line.replace("**", "").strip())}</div>'
+        elif line.startswith("### ") or line.startswith("## "):
+            # 对话式收集的简历：### 小节 → 节标题（r-subtitle 样式）
+            body_parts.append(
+                f'<div class="r-subtitle">{_esc(line.lstrip("#").strip())}</div>')
         elif line.strip().startswith("- "):
             body_parts.append(
                 f'<div class="r-exp"><div class="r-evidence">{_esc(line.strip()[2:])}</div></div>')

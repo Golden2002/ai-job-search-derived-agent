@@ -110,7 +110,7 @@ body{font-family:var(--font);background:var(--bg-app);color:var(--ink-900);font-
 </head>
 <body>
 <div class="header">
-  <span class="logo">📄 对话式简历制作</span>
+  <span class="logo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> 对话式简历制作</span>
   <span class="crumb" id="crumb">选择场景开始</span>
   <span class="spacer"></span>
   <button class="btn ghost" onclick="toggleCard()">维度卡片</button>
@@ -157,7 +157,7 @@ body{font-family:var(--font);background:var(--bg-app);color:var(--ink-900);font-
 let scenes = [];
 let state = {};     // {stageId: {fieldKey: value}}
 let filled = {};    // {stageId: {fieldKey: "filled"|"partial"}}
-let currentScene = null, currentStage = null;
+let currentScene = null, currentSubScene = null, currentStage = null;
 let importedCss = null;
 
 (async function init(){
@@ -172,14 +172,22 @@ let importedCss = null;
 })();
 
 function findScene(id){ return scenes.find(s=>s.id===id); }
-function findStage(id){ for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]) if(st.id===id) return st; return null; }
+function findStage(id){
+  // stage_id（basic/education/work…）在多场景复用，非全局唯一：优先在当前场景内定位
+  const sc=findScene(currentScene);
+  if(sc){ for(const ss of sc.sub_scenes||[]) for(const st of ss.stages||[]) if(st.id===id) return st; }
+  for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]) if(st.id===id) return st;
+  return null;
+}
+function stageKey(sceneId, subSceneId, stageId){ return (sceneId||'')+'|'+(subSceneId||'')+'|'+(stageId||''); }
+function curKey(st){ return stageKey(currentScene, currentSubScene, st.id); }
 
 function renderNav(){
   const nav = document.getElementById('nav');
   // 上传按钮只出现一次（顶部，不在每个场景下重复）
   nav.innerHTML = `
     <div class="upload">
-      <label>💡 已有简历？上传 Word/PDF/Excel/截图：</label>
+      <label><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> 已有简历？上传 Word/PDF/Excel/截图：</label>
       <input type="file" accept=".docx,.pdf,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp,.bmp" onchange="uploadResume(this.files[0])">
       <div id="uploadMsg" style="font-size:11px;color:var(--success-600);margin-top:4px"></div>
     </div>
@@ -190,8 +198,8 @@ function renderNav(){
       ${(s.sub_scenes||[]).map(ss => `
         <div class="dir-head">${esc(ss.label)}</div>
         ${(ss.stages||[]).map(st => `
-          <div class="stage" data-stage="${st.id}" onclick="selectStage('${s.id}','${st.id}')">
-            <span class="dot" id="dot-${st.id}"></span>${esc(st.label)}
+          <div class="stage" data-scene="${s.id}" data-sub="${ss.id}" data-stage="${st.id}" onclick="selectStage('${s.id}','${ss.id}','${st.id}')">
+            <span class="dot" id="dot-${s.id}-${ss.id}-${st.id}"></span>${esc(st.label)}
           </div>`).join('')}
       `).join('')}
     </div>
@@ -200,13 +208,13 @@ function renderNav(){
 
 function toggleScene(sid){ const el=document.getElementById('scene-'+sid); el.style.display = el.style.display==='none'?'':'none'; }
 
-function selectStage(sid, stid){
-  currentScene = sid; currentStage = stid;
+function selectStage(sid, ssid, stid){
+  currentScene = sid; currentSubScene = ssid; currentStage = stid;
   document.querySelectorAll('.nav .stage').forEach(el=>el.classList.remove('active'));
-  document.querySelector(`.nav .stage[data-stage="${stid}"]`).classList.add('active');
+  document.querySelector(`.nav .stage[data-scene="${sid}"][data-sub="${ssid}"][data-stage="${stid}"]`).classList.add('active');
   const st = findStage(stid);
   const s = findScene(sid);
-  const ss = (s.sub_scenes||[]).find(x => (x.stages||[]).some(y=>y.id===stid));
+  const ss = (s.sub_scenes||[]).find(x => x.id===ssid);
   document.getElementById('crumb').textContent = `${s.label} / ${ss?ss.label:''} / ${st.label}`;
   document.getElementById('cardStageName').textContent = st.label;
   renderCard(st);
@@ -218,9 +226,10 @@ function selectStage(sid, stid){
 
 function renderCard(st){
   const body = document.getElementById('cardBody');
+  const k = curKey(st);
   body.innerHTML = `<div class="hint">${esc(st.hint||'')}</div>` + `<div class="field-grid">` + (st.fields||[]).map(f=>{
-    const v = (state[st.id]||{})[f.key] || '';
-    const stt = (filled[st.id]||{})[f.key] || 'empty';
+    const v = (state[k]||{})[f.key] || '';
+    const stt = (filled[k]||{})[f.key] || 'empty';
     const cls = stt==='filled'?'filled':(stt==='partial'?'partial':'');
     const tag = {text:'文本',select:'枚举',multi:'多选',number:'数值',date_range:'日期',long:'长文本'}[f.type]||f.type;
     const val = v ? v : `<span class="placeholder">${esc(f.placeholder||'点击填写')}</span>`;
@@ -234,20 +243,22 @@ function renderCard(st){
 
 function updateProgress(st){
   const total = st.fields.length;
-  const done = (st.fields||[]).filter(f=>(filled[st.id]||{})[f.key]==='filled').length;
+  const k = curKey(st);
+  const done = (st.fields||[]).filter(f=>(filled[k]||{})[f.key]==='filled').length;
   document.getElementById('cardProgress').textContent = `${done}/${total} 已收集`;
-  const dot = document.getElementById('dot-'+st.id);
+  const dot = document.getElementById('dot-'+currentScene+'-'+currentSubScene+'-'+st.id);
   if(dot){ dot.className='dot '+(done===total?'done':(done>0?'partial':'')); }
 }
 
 function fillField(stid, key){
   const st = findStage(stid);
+  const k = curKey(st);
   const f = st.fields.find(x=>x.key===key);
   let val;
   if(f.type==='select' && f.options){
-    val = prompt(`${f.label}\n可选：${f.options.join(' / ')}`, (state[stid]||{})[key]||'');
+    val = prompt(`${f.label}\n可选：${f.options.join(' / ')}`, (state[k]||{})[key]||'');
   }else{
-    val = prompt(`${f.label}${f.placeholder?'\n提示：'+f.placeholder:''}`, (state[stid]||{})[key]||'');
+    val = prompt(`${f.label}${f.placeholder?'\n提示：'+f.placeholder:''}`, (state[k]||{})[key]||'');
   }
   if(val===null) return;
   setField(stid, key, val.trim(), 'filled');
@@ -257,11 +268,12 @@ function fillField(stid, key){
 }
 
 function setField(stid, key, val, status){
-  if(!state[stid]) state[stid]={};
-  if(!filled[stid]) filled[stid]={};
-  state[stid][key]=val;
-  filled[stid][key]=status||(val?'filled':'empty');
   const st=findStage(stid);
+  const k=curKey(st);
+  if(!state[k]) state[k]={};
+  if(!filled[k]) filled[k]={};
+  state[k][key]=val;
+  filled[k][key]=status||(val?'filled':'empty');
   renderCard(st); renderSummary();
 }
 
@@ -275,13 +287,13 @@ async function send(){
   // 后端 LLM 约束追问（/api/chat）：实体抽取 + 追问
   try{
     const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:text, stage_id:currentStage, collected:state[currentStage]||{}})});
+      body:JSON.stringify({message:text, stage_id:currentStage, scene_id:currentScene, sub_scene_id:currentSubScene, collected:state[curKey(st)]||{}})});
     const d=await r.json();
     if(d.ok && d.llm){
       for(const [key,val] of Object.entries(d.filled||{})){
         setField(currentStage, key, val, 'filled');
       }
-      if(d.summary){ addMsg('ai','📋 '+d.summary); }
+      if(d.summary){ addMsg('ai', d.summary); }
       if(d.followup){ addMsg('ai', d.followup); }
       else{ askNext(st); }
     }else{
@@ -293,19 +305,21 @@ async function send(){
 }
 
 function _fallbackAsk(st, text){
+  const k = curKey(st);
   // 跳过语义：用户回复"跳过/没有/无"→ 标记为已处理（可选字段），继续
   if(/^(跳过|略过|没有|无|没有相关经历|pass|skip|none|n\/a)$/i.test(text.trim())){
-    const f=(st.fields||[]).find(x=>!(filled[currentStage]||{})[x.key]||(filled[currentStage]||{})[x.key]==='empty');
+    const f=(st.fields||[]).find(x=>!(filled[k]||{})[x.key]||(filled[k]||{})[x.key]==='empty');
     if(f && !f.required){ setField(currentStage, f.key, '', 'filled'); addMsg('ai',`好的，已跳过「${f.label}」。`); askNext(st); return; }
     if(f && f.required){ addMsg('ai',`「${f.label}」是必填项，请简单提供一下（如没有可填「无」以外的具体说明）。`); return; }
   }
-  const f=(st.fields||[]).find(x=>!(filled[currentStage]||{})[x.key]||(filled[currentStage]||{})[x.key]==='empty');
+  const f=(st.fields||[]).find(x=>!(filled[k]||{})[x.key]||(filled[k]||{})[x.key]==='empty');
   if(f){ setField(currentStage, f.key, text, 'filled'); addMsg('ai',`已记录「${f.label}」：${text}。`); askNext(st); }
   else{ addMsg('ai',`「${st.label}」已收集完整，可切换下一阶段或点击「生成简历」。`); }
 }
 
 function askNext(st){
-  const empty=(st.fields||[]).filter(f=>!(filled[st.id]||{})[f.key]||(filled[st.id]||{})[f.key]==='empty');
+  const k = curKey(st);
+  const empty=(st.fields||[]).filter(f=>!(filled[k]||{})[f.key]||(filled[k]||{})[f.key]==='empty');
   if(empty.length>0){
     const f=empty[0];
     let chips='';
@@ -315,16 +329,17 @@ function askNext(st){
     const hint=f.placeholder?`（${f.placeholder}）`:'';
     addMsg('ai',`下一个「${f.label}」${hint}${f.required?'（必填）':'（无此经历可回复「跳过」）'}：`, chips);
   }else{
-    const done=(st.fields||[]).filter(f=>(filled[st.id]||{})[f.key]==='filled').length;
-    addMsg('ai',`✅「${st.label}」已收集完整（${done} 项）。可切换下一阶段，或点击右上角「生成简历」。`);
+    const done=(st.fields||[]).filter(f=>(filled[k]||{})[f.key]==='filled').length;
+    addMsg('ai',`「${st.label}」已收集完整（${done} 项）。可切换下一阶段，或点击右上角「生成简历」。`);
   }
 }
 
 function pickChip(stid, key, val){
   const st=findStage(stid);
+  const k=curKey(st);
   const f=st.fields.find(x=>x.key===key);
   if(f.type==='multi'){
-    const cur=(state[stid]||{})[key]||'';
+    const cur=(state[k]||{})[key]||'';
     const arr=cur?cur.split('、'):[];
     if(arr.includes(val)){ arr.splice(arr.indexOf(val),1); }
     else{ arr.push(val); }
@@ -344,11 +359,12 @@ function renderSummary(){
   const summary=document.getElementById('summary');
   let totalFields=0, filledFields=0, groups='';
   for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]){
+    const k=stageKey(s.id, ss.id, st.id);
     const t=st.fields.length;
-    const done=(st.fields||[]).filter(f=>(filled[st.id]||{})[f.key]==='filled').length;
+    const done=(st.fields||[]).filter(f=>(filled[k]||{})[f.key]==='filled').length;
     totalFields+=t; filledFields+=done;
     const items=(st.fields||[]).map(f=>{
-      const v=(state[st.id]||{})[f.key]||'';
+      const v=(state[k]||{})[f.key]||'';
       return `<div class="s-item"><span>${esc(f.label)}</span><span class="v">${v?esc(v):'—'}</span></div>`;
     }).join('');
     groups+=`<div class="s-group"><div class="g-name"><span>${esc(st.label)}</span><span class="st">${done}/${t}</span></div>${items}</div>`;
@@ -370,7 +386,8 @@ function generateResume(){
   // 汇总为结构化数据（供预览 + 导出）
   const sections=[];
   for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]){
-    const vals=(st.fields||[]).filter(f=>(state[st.id]||{})[f.key]).map(f=>`${f.label}：${(state[st.id]||{})[f.key]}`);
+    const k=stageKey(s.id, ss.id, st.id);
+    const vals=(st.fields||[]).filter(f=>(state[k]||{})[f.key]).map(f=>`${f.label}：${(state[k]||{})[f.key]}`);
     if(vals.length){ sections.push({title:st.label, lines:vals}); }
   }
   window._sections=sections;
@@ -384,8 +401,12 @@ function renderPreview(){
   body.className='pv-resume pv-'+previewTpl;
   const secs=window._sections||[];
   if(!secs.length){ body.innerHTML='<div class="pv-empty">还没有收集到信息。先选左侧场景、通过对话或卡片填写，再点「生成简历」预览。</div>'; return; }
-  const name=(state.basic||{}).name || '';
-  const contact=(state.basic||{}).contact || '';
+  let name='', contact='';
+  for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]){
+    const k=stageKey(s.id, ss.id, st.id);
+    if(!name) name=(state[k]||{}).name || '';
+    if(!contact) contact=(state[k]||{}).contact || '';
+  }
   body.innerHTML=`
     ${name?`<h3>${esc(name)}</h3>`:''}
     ${contact?`<div class="pv-sub">${esc(contact)}</div>`:''}
@@ -412,7 +433,7 @@ async function uploadResume(file){
     const d=await r.json();
     if(!d.ok){document.getElementById('uploadMsg').textContent=d.error||'失败';return;}
     importedCss=d.css;
-    document.getElementById('uploadMsg').textContent='✅ 已还原排版';
+    document.getElementById('uploadMsg').textContent='已还原排版';
     addMsg('ai',`已识别你的简历（${d.meta.paragraphs} 段），排版样式已保存。可继续对话补充，或直接导出。`);
   }catch(e){document.getElementById('uploadMsg').textContent='上传失败';}
 }

@@ -1,0 +1,29 @@
+{
+  "turns": [
+    {
+      "message": "我叫张三，想应聘后端开发，工作3年",
+      "response": {
+        "filled": {
+          "name": "张三",
+          "target_role": "后端开发",
+          "years": "3-5年"
+        },
+        "followup": "请问您的联系方式是？（选填）另外，您的工作年限具体是3年还是3-5年区间？",
+        "llm": true,
+        "ok": true,
+        "summary": "已收集：姓名（张三）、目标岗位（后端开发）、工作年限（3-5年）"
+      }
+    },
+    {
+      "message": "我熟悉 Java 和 Spring Cloud，主导过微服务改造",
+      "response": {
+        "filled": {},
+        "followup": "请问您的姓名是？另外，方便提供一下您的联系方式吗？",
+        "llm": true,
+        "ok": true,
+        "summary": "已收集：目标岗位为后端开发，工作年限为3-5年；当前未补充姓名和联系方式。"
+      }
+    }
+  ],
+  "llm": true
+}

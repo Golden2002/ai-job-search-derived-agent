@@ -1,0 +1,72 @@
+{
+  "degraded": false,
+  "evaluation": {
+    "eligibility": {
+      "note": "职位未明确公民/居留要求，标记为未核实，起草前应查雇主官网确认。",
+      "quote": "",
+      "reason": "silent",
+      "verdict": "PROCEED_UNVERIFIED"
+    },
+    "gaps": [
+      "数据分析"
+    ],
+    "language": {
+      "note": "职位未声明特定工作语言要求。",
+      "required": [],
+      "verdict": "PASS"
+    },
+    "scored": true,
+    "scores": {
+      "alignment": 50,
+      "behavioral": 50,
+      "experience": 35,
+      "location": {
+        "note": "职位未标注地点。",
+        "score": 60,
+        "verdict": "FLAG"
+      },
+      "technical": 100
+    },
+    "total": 60.5,
+    "verdict": "Moderate Fit"
+  },
+  "ok": true,
+  "suggestions": [
+    {
+      "action": "重写并细化 claim，补充分析对象、方法或工具（若原文未提及则用待补充占位），以增强经验可信度。",
+      "dimension": "experience",
+      "id": 1,
+      "needs_user_input": true,
+      "priority": 1,
+      "reason": "experience 维度仅 35 分，且事实卡 [0] 的 claim 过于笼统，未体现具体分析过程或成果，无法支撑 JD 中 SQL/Python 技能要求。需通过改写突出分析细节，但不得新增未提及内容。",
+      "rewritten": "负责数据分析（待补充：分析目标、数据源、使用工具如 SQL/Python、分析步骤及结论）",
+      "target_index": 0,
+      "target_text": "负责数据分析",
+      "type": "rewrite"
+    },
+    {
+      "action": "需补充真实经历或待学习：在事实卡中增加使用 SQL 或 Python 进行数据清洗、查询、统计或建模的具体案例，否则无法弥补该缺口。",
+      "dimension": "technical",
+      "id": 2,
+      "needs_user_input": true,
+      "priority": 2,
+      "reason": "technical 维度虽为 100 分，但缺失技能 gaps 包含 '数据分析'，且事实卡中未提及 SQL 或 Python 的具体使用，无法证明技术能力与 JD 匹配。",
+      "rewritten": null,
+      "target_index": null,
+      "target_text": null,
+      "type": "gap"
+    },
+    {
+      "action": "重写 claim，突出分析结果的应用场景或业务影响（若原文无具体描述，则用待补充占位）。",
+      "dimension": "alignment",
+      "id": 3,
+      "needs_user_input": true,
+      "priority": 3,
+      "reason": "alignment 维度仅 50 分，事实卡 [0] 未体现与数据分析师岗位职责的关联性，需通过改写强调分析工作对业务决策或问题解决的价值。",
+      "rewritten": "负责数据分析，为业务决策提供数据支持（待补充：具体业务场景、分析产出及影响）",
+      "target_index": 0,
+      "target_text": "负责数据分析",
+      "type": "rewrite"
+    }
+  ]
+}

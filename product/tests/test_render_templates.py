@@ -53,3 +53,20 @@ def test_build_html_escapes_injection():
 def test_build_html_custom_css_injected():
     html = build_html("", template="classic", custom_css=".x{color:red}")
     assert ".x{color:red" in html
+
+
+def test_build_html_no_stray_asterisks():
+    """适配方向行的 ** 不应泄入 HTML。"""
+    md = "**适配方向**：算法（technical）"
+    html = build_html(md)
+    assert "**" not in html
+    assert "适配方向" in html
+
+
+def test_build_html_renders_sub_heading():
+    """对话式收集的 ### 小节 → 节标题（r-subtitle）。"""
+    md = "### 基本信息\n姓名：张三"
+    html = build_html(md)
+    assert 'class="r-subtitle"' in html
+    assert "基本信息" in html
+    assert "**" not in html

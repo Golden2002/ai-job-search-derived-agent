@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "result": {
+    "eligibility": {
+      "note": "职位未明确公民/居留要求，标记为未核实，起草前应查雇主官网确认。",
+      "quote": "",
+      "reason": "silent",
+      "verdict": "PROCEED_UNVERIFIED"
+    },
+    "gaps": [],
+    "language": {
+      "note": "职位未声明特定工作语言要求。",
+      "required": [],
+      "verdict": "PASS"
+    },
+    "scored": true,
+    "scores": {
+      "alignment": 50,
+      "behavioral": 50,
+      "experience": 54,
+      "location": {
+        "note": "地点可能需搬迁/通勤，需与用户确认。",
+        "score": 40,
+        "verdict": "FLAG"
+      },
+      "technical": 100
+    },
+    "total": 66.2,
+    "verdict": "Moderate Fit"
+  }
+}
