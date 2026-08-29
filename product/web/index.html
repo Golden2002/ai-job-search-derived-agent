@@ -95,9 +95,9 @@
   <!-- ① 经历 + JD -->
   <div class="card" id="card1">
     <h2>你的经历描述（教育/实习/项目/技能——尽量具体，含量化数据）</h2>
-    <p style="font-size:13px;color:#5C534A;margin:0 0 8px">💡 已有简历？上传 <b>Word 文档</b> 或 <b>简历截图</b>，自动识别并还原排版（字体/字号/对齐/缩进/表格/分栏/图片）并在导出 PDF 时应用：</p>
+    <p style="font-size:13px;color:#5C534A;margin:0 0 8px">💡 已有简历？上传 <b>Word / PDF / Excel / 截图</b>，自动识别并还原排版（字体/字号/颜色/对齐/缩进/表格/分栏/图片）并在导出 PDF 时应用：</p>
     <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <input type="file" id="resumeFile" accept=".docx,.png,.jpg,.jpeg,.webp,.bmp">
+      <input type="file" id="resumeFile" accept=".docx,.pdf,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp,.bmp">
       <button class="secondary" onclick="uploadResume()">上传并还原排版</button>
     </div>
     <div class="error" id="errUpload"></div>
@@ -183,10 +183,18 @@ function stripHtml(html) {
 async function uploadResume() {
   setErr('errUpload', '');
   const file = document.getElementById('resumeFile').files[0];
-  if (!file) { setErr('errUpload', '请先选择 .docx 或图片文件'); return; }
+  if (!file) { setErr('errUpload', '请先选择简历文件'); return; }
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const isImage = ['png','jpg','jpeg','webp','bmp'].includes(ext);
-  const endpoint = isImage ? '/api/import-image' : '/api/import-docx';
+  const endpointMap = {
+    docx: '/api/import-docx',
+    pdf: '/api/import-pdf',
+    xlsx: '/api/import-xlsx',
+    xlsm: '/api/import-xlsx',
+    png: '/api/import-image', jpg: '/api/import-image',
+    jpeg: '/api/import-image', webp: '/api/import-image', bmp: '/api/import-image',
+  };
+  const endpoint = endpointMap[ext];
+  if (!endpoint) { setErr('errUpload', '不支持的文件类型：' + ext); return; }
   const fd = new FormData();
   fd.append('file', file);
   try {
@@ -199,9 +207,12 @@ async function uploadResume() {
       document.getElementById('experience').value = plain.trim();
     }
     const m = d.meta || {};
-    const src = isImage ? '截图 OCR' : 'Word';
-    setErr('errUpload', '✅ 已还原 ' + src + ' 的 ' + m.paragraphs + ' 段 / '
-      + m.columns + ' 栏' + (m.tables ? ' / ' + m.tables + ' 表格' : '')
+    const srcLabel = {docx:'Word', pdf:'PDF', xlsx:'Excel', xlsm:'Excel',
+                      png:'截图', jpg:'截图', jpeg:'截图', webp:'截图', bmp:'截图'}[ext] || ext;
+    setErr('errUpload', '✅ 已还原 ' + srcLabel + ' 的 ' + m.paragraphs + ' 行/段'
+      + (m.columns ? ' / ' + m.columns + ' 栏' : '')
+      + (m.tables ? ' / ' + m.tables + ' 表格' : '')
+      + (m.merged_cells ? ' / ' + m.merged_cells + ' 合并单元格' : '')
       + ' 排版（导出 PDF 时应用还原 CSS）');
   } catch (e) { setErr('errUpload', '上传失败：' + e.message); }
 }

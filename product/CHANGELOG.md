@@ -2,6 +2,18 @@
 
 本文件记录本工具的更新路径：版本、改动模块、测试数、关联需求文档。
 
+## v1.8.2 (2026-08-29) — PDF/Excel 简历上传 → 排版还原（Oracle 多格式改造完整实施）
+
+**更新路径**：product/src/resume_product/render/{pdf_import.py, xlsx_import.py}（新增）+ executor.py + mcp_server.py + api.py + web/index.html + product/tests/test_pdf_xlsx_import.py
+
+- 新增 pdf_import.py（P0）：PDF 简历 → pdfplumber 字符级提取（text + 坐标 + fontname + size + non_stroking_color）→ 几何布局（复用 image_import 框架：行分组/分栏/字号/颜色）→ CSS/HTML 还原（真实字体信息替代 OCR 推断，精度更高）
+- 新增 xlsx_import.py（P1）：Excel 简历 → openpyxl 读取单元格样式（字体/字号/加粗/颜色/填充 solid/对齐）+ merged_cells → HTML 表格（colspan/rowspan + 单元格样式）
+- executor + MCP 25 工具（import_resume_pdf / import_resume_xlsx）；api.py 新增 `POST /api/import-pdf` + `/api/import-xlsx`
+- 前端上传入口扩展：接受 .docx/.pdf/.xlsx/.xlsm/图片，`uploadResume()` 按扩展名分发到对应端点
+- 测试 +3（test_pdf_xlsx_import.py：PDF 还原/Excel 合并单元格样式/无填充不误加背景）
+- **四格式还原全齐**：Word(100%) / Excel(表格+样式) / PDF(坐标+真实字体) / 图片(OCR+几何)
+- 依赖：pdfplumber + openpyxl（可选，无则优雅降级）
+
 ## v1.8.1 (2026-08-29) — 简历截图上传 → OCR 排版识别 → CSS/HTML 还原
 
 **更新路径**：product/src/resume_product/render/image_import.py（新增）+ executor.py + mcp_server.py + api.py + web/index.html + product/tests/test_image_import.py

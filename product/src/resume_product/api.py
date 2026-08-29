@@ -314,6 +314,66 @@ def create_app(config: dict | None = None) -> Flask:
             "filename": f.filename,
         })
 
+    @app.route("/api/import-pdf", methods=["POST"])
+    def import_pdf():
+        """上传 PDF 简历 → pdfplumber 字符级提取 → 返回还原 CSS + HTML。"""
+        if "file" not in request.files:
+            return jsonify({"ok": False, "error": "缺少 file 字段"}), 400
+        f = request.files["file"]
+        if not f or not f.filename:
+            return jsonify({"ok": False, "error": "空文件名"}), 400
+        suffix = os.path.splitext(f.filename)[1].lower() or ".pdf"
+        if suffix != ".pdf":
+            return jsonify({"ok": False, "error": f"仅支持 .pdf，收到 {suffix}"}), 400
+        import tempfile
+        tmp = os.path.join(tempfile.gettempdir(),
+                           f"resume_pdf_{os.urandom(4).hex()}.pdf")
+        f.save(tmp)
+        try:
+            from .render.pdf_import import import_resume_pdf
+            r = import_resume_pdf(tmp)
+        except ImportError:
+            return jsonify({"ok": False, "error": "pdfplumber 未安装"}), 500
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"解析失败: {str(e)[:200]}"}), 500
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        return jsonify({
+            "ok": True, "html": r["html"], "css": r["css"],
+            "meta": r["meta"], "filename": f.filename,
+        })
+
+    @app.route("/api/import-xlsx", methods=["POST"])
+    def import_xlsx():
+        """上传 Excel 简历 → openpyxl 单元格样式提取 → 返回还原 HTML 表格 + CSS。"""
+        if "file" not in request.files:
+            return jsonify({"ok": False, "error": "缺少 file 字段"}), 400
+        f = request.files["file"]
+        if not f or not f.filename:
+            return jsonify({"ok": False, "error": "空文件名"}), 400
+        suffix = os.path.splitext(f.filename)[1].lower() or ".xlsx"
+        if suffix not in (".xlsx", ".xlsm"):
+            return jsonify({"ok": False, "error": f"仅支持 .xlsx/.xlsm，收到 {suffix}"}), 400
+        import tempfile
+        tmp = os.path.join(tempfile.gettempdir(),
+                           f"resume_xlsx_{os.urandom(4).hex()}{suffix}")
+        f.save(tmp)
+        try:
+            from .render.xlsx_import import import_resume_xlsx
+            r = import_resume_xlsx(tmp)
+        except ImportError:
+            return jsonify({"ok": False, "error": "openpyxl 未安装"}), 500
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"解析失败: {str(e)[:200]}"}), 500
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        return jsonify({
+            "ok": True, "html": r["html"], "css": r["css"],
+            "meta": r["meta"], "filename": f.filename,
+        })
+
     @app.route("/")
     def index():
         idx = _DEMO_DIR / "index.html"

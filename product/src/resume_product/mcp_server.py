@@ -165,6 +165,16 @@ def build_server() -> "FastMCP":
         """上传简历截图 → OCR 识别文字与排版（字号/对齐/分栏）→ 生成 CSS/HTML 还原自定义样式。"""
         return execute("import_resume_image", {"image_path": image_path})
 
+    @mcp.tool()
+    def import_resume_pdf(pdf_path: str = "") -> str:
+        """上传 PDF 简历 → pdfplumber 提取字符级字体/字号/颜色/坐标 → 生成 CSS/HTML 还原排版。"""
+        return execute("import_resume_pdf", {"pdf_path": pdf_path})
+
+    @mcp.tool()
+    def import_resume_xlsx(xlsx_path: str = "") -> str:
+        """上传 Excel 简历 → openpyxl 读取单元格样式（字体/颜色/填充/合并）→ 生成 HTML 表格还原。"""
+        return execute("import_resume_xlsx", {"xlsx_path": xlsx_path})
+
     # ═══════════════════════════════════════════════════════════
     # §3.116 ⭐ R3 MCP 三原语补全：resources + prompts
     # ═══════════════════════════════════════════════════════════
