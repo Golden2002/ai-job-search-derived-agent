@@ -72,3 +72,32 @@ def test_index_page(client):
     r = client.get("/")
     assert r.status_code == 200
     assert "对话式简历制作" in r.get_data(as_text=True)
+
+
+# ── R6: 对话式收集 /api/chat ──
+def test_chat_missing_message(client):
+    r = client.post("/api/chat", json={"stage_id": "basic"})
+    assert r.status_code == 400
+
+
+def test_chat_unknown_stage(client):
+    r = client.post("/api/chat", json={"message": "你好", "stage_id": "nonexistent"})
+    assert r.status_code == 400
+
+
+def test_chat_llm_graceful(client):
+    """/api/chat 正常返回（LLM 可用/不可用均 ok=True 不报错）。"""
+    r = client.post("/api/chat", json={"message": "我在字节跳动实习", "stage_id": "basic"})
+    assert r.status_code == 200
+    d = r.get_json()
+    assert d["ok"] is True
+    assert isinstance(d["llm"], bool)
+    assert "filled" in d and "followup" in d and "summary" in d
+
+
+def test_chat_valid_stage(client):
+    """有效 stage（backend 的 basic）正常返回。"""
+    r = client.post("/api/chat", json={"message": "我叫张三", "stage_id": "basic"})
+    assert r.status_code == 200
+    d = r.get_json()
+    assert d["ok"] is True

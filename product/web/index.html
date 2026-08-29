@@ -223,18 +223,37 @@ function setField(stid, key, val, status){
   renderCard(st); renderSummary();
 }
 
-function send(){
+async function send(){
   const input=document.getElementById('input');
   const text=input.value.trim(); if(!text) return;
   input.value='';
   addMsg('user', text);
-  if(currentStage){
-    const st=findStage(currentStage);
-    const f=(st.fields||[]).find(x=>!(filled[currentStage]||{})[x.key]||(filled[currentStage]||{})[x.key]==='empty');
-    if(f){ setField(currentStage, f.key, text, 'filled'); addMsg('ai',`已记录「${f.label}」：${text}。`); }
-    else{ addMsg('ai',`「${st.label}」已收集完整，可切换下一阶段或点击「生成简历」。`); }
-    askNext(st);
-  }else{ addMsg('ai','请先从左侧选择一个场景，或直接上传已有简历。'); }
+  if(!currentStage){ addMsg('ai','请先从左侧选择一个场景，或直接上传已有简历。'); return; }
+  const st=findStage(currentStage);
+  // 后端 LLM 约束追问（/api/chat）：实体抽取 + 追问
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:text, stage_id:currentStage, collected:state[currentStage]||{}})});
+    const d=await r.json();
+    if(d.ok && d.llm){
+      for(const [key,val] of Object.entries(d.filled||{})){
+        setField(currentStage, key, val, 'filled');
+      }
+      if(d.summary){ addMsg('ai','📋 '+d.summary); }
+      if(d.followup){ addMsg('ai', d.followup); }
+      else{ askNext(st); }
+    }else{
+      _fallbackAsk(st, text);
+    }
+  }catch(e){
+    _fallbackAsk(st, text);
+  }
+}
+
+function _fallbackAsk(st, text){
+  const f=(st.fields||[]).find(x=>!(filled[currentStage]||{})[x.key]||(filled[currentStage]||{})[x.key]==='empty');
+  if(f){ setField(currentStage, f.key, text, 'filled'); addMsg('ai',`已记录「${f.label}」：${text}。`); askNext(st); }
+  else{ addMsg('ai',`「${st.label}」已收集完整，可切换下一阶段或点击「生成简历」。`); }
 }
 
 function askNext(st){

@@ -61,6 +61,76 @@ def create_app(config: dict | None = None) -> Flask:
         except Exception as e:
             return jsonify({"ok": False, "error": str(e)[:200]}), 500
 
+    def _load_scenes():
+        p = Path(__file__).resolve().parent / "data" / "scene_cards.json"
+        try:
+            return json.loads(p.read_text(encoding="utf-8")).get("scenes", [])
+        except Exception:
+            return []
+
+    def _find_stage(stage_id):
+        for s in _load_scenes():
+            for ss in s.get("sub_scenes", []):
+                for st in ss.get("stages", []):
+                    if st["id"] == stage_id:
+                        return st
+        return None
+
+    def _build_collect_system(stage, collected):
+        """构建收集助手 system prompt（场景字段约束 → LLM 追问 + 实体抽取）。"""
+        lines = []
+        for f in stage.get("fields", []):
+            opt = f"可选：{' / '.join(f['options'])}" if f.get("options") else ""
+            req = "必填" if f.get("required") else "可选"
+            lines.append(f"- {f['label']}(key={f['key']})：{req}{'，' + opt if opt else ''}")
+        collected_desc = json.dumps(collected, ensure_ascii=False) if collected else "（暂无）"
+        return (
+            "你是简历信息收集助手，通过对话收集用户的简历信息，帮助补全遗漏。\n"
+            f"当前收集维度：「{stage.get('label', '')}」——{stage.get('hint', '')}\n"
+            f"需要收集的字段：\n{chr(10).join(lines)}\n"
+            f"已收集：{collected_desc}\n\n"
+            "任务：\n"
+            "1. 从用户输入中识别信息，填充到对应字段（key 用上面的 key）\n"
+            "2. 追问缺失的必填字段，每次追问 1-2 个；枚举字段给出可选选项\n"
+            "3. 绝不编造用户没说过的信息\n"
+            "4. 只输出 JSON，不要其他文字：\n"
+            '{"filled": {"字段key": "值"}, "followup": "追问问题", "summary": "已收集小结"}'
+        )
+
+    @app.route("/api/chat", methods=["POST"])
+    def chat():
+        """对话式收集：LLM 约束追问 + 实体抽取（前端 send 接入）。"""
+        data = request.get_json(force=True) or {}
+        message = data.get("message", "")
+        stage_id = data.get("stage_id", "")
+        collected = data.get("collected", {}) or {}
+        if not message:
+            return jsonify({"ok": False, "error": "缺少 message"}), 400
+        stage = _find_stage(stage_id)
+        if stage is None:
+            return jsonify({"ok": False, "error": "未知 stage_id"}), 400
+        system = _build_collect_system(stage, collected)
+        from .llm_client import chat as llm_chat
+        raw = llm_chat(system, f"用户说：{message}", max_tokens=1000)
+        if not raw:
+            # LLM 不可用 → 降级（前端走规则式追问）
+            return jsonify({"ok": True, "filled": {}, "followup": "",
+                            "summary": "", "llm": False})
+        result = {}
+        try:
+            import re as _re
+            m = _re.search(r"\{.*\}", raw, _re.S)
+            result = json.loads(m.group(0)) if m else {}
+        except Exception:
+            result = {}
+        return jsonify({
+            "ok": True,
+            "filled": result.get("filled", {}),
+            "followup": result.get("followup", ""),
+            "summary": result.get("summary", ""),
+            "llm": True,
+        })
+
     @app.route("/api/templates")
     def templates():
         """PDF 渲染模板清单（前端模板示例卡片数据源）。"""
