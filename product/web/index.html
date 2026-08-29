@@ -95,10 +95,10 @@
   <!-- ① 经历 + JD -->
   <div class="card" id="card1">
     <h2>你的经历描述（教育/实习/项目/技能——尽量具体，含量化数据）</h2>
-    <p style="font-size:13px;color:#5C534A;margin:0 0 8px">💡 已有简历？上传 Word 文档，自动还原排版（字体/字号/对齐/缩进/表格/分栏/图片）并在导出 PDF 时应用：</p>
+    <p style="font-size:13px;color:#5C534A;margin:0 0 8px">💡 已有简历？上传 <b>Word 文档</b> 或 <b>简历截图</b>，自动识别并还原排版（字体/字号/对齐/缩进/表格/分栏/图片）并在导出 PDF 时应用：</p>
     <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <input type="file" id="resumeFile" accept=".docx">
-      <button class="secondary" onclick="uploadDocx()">上传并还原排版</button>
+      <input type="file" id="resumeFile" accept=".docx,.png,.jpg,.jpeg,.webp,.bmp">
+      <button class="secondary" onclick="uploadResume()">上传并还原排版</button>
     </div>
     <div class="error" id="errUpload"></div>
     <textarea id="experience" placeholder="例：我在字节跳动实习，负责抖音推荐算法优化，通过 A/B 测试提升点击率 15%；主导了用户画像模块开发，覆盖 500 万用户。"></textarea>
@@ -180,14 +180,17 @@ function stripHtml(html) {
   return d.textContent || '';
 }
 
-async function uploadDocx() {
+async function uploadResume() {
   setErr('errUpload', '');
   const file = document.getElementById('resumeFile').files[0];
-  if (!file) { setErr('errUpload', '请先选择 .docx 文件'); return; }
+  if (!file) { setErr('errUpload', '请先选择 .docx 或图片文件'); return; }
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
+  const isImage = ['png','jpg','jpeg','webp','bmp'].includes(ext);
+  const endpoint = isImage ? '/api/import-image' : '/api/import-docx';
   const fd = new FormData();
   fd.append('file', file);
   try {
-    const r = await fetch('/api/import-docx', {method: 'POST', body: fd});
+    const r = await fetch(endpoint, {method: 'POST', body: fd});
     const d = await r.json();
     if (!d.ok) { setErr('errUpload', d.error || '上传失败'); return; }
     importedCss = d.css;
@@ -196,9 +199,10 @@ async function uploadDocx() {
       document.getElementById('experience').value = plain.trim();
     }
     const m = d.meta || {};
-    setErr('errUpload', '✅ 已还原 ' + m.paragraphs + ' 段 / ' + m.tables + ' 表格 / '
-      + m.columns + ' 栏' + (m.images ? ' / ' + m.images + ' 图' : '')
-      + ' 的排版（导出 PDF 时应用还原 CSS）');
+    const src = isImage ? '截图 OCR' : 'Word';
+    setErr('errUpload', '✅ 已还原 ' + src + ' 的 ' + m.paragraphs + ' 段 / '
+      + m.columns + ' 栏' + (m.tables ? ' / ' + m.tables + ' 表格' : '')
+      + ' 排版（导出 PDF 时应用还原 CSS）');
   } catch (e) { setErr('errUpload', '上传失败：' + e.message); }
 }
 

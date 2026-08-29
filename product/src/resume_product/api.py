@@ -279,6 +279,41 @@ def create_app(config: dict | None = None) -> Flask:
             "filename": f.filename,
         })
 
+    @app.route("/api/import-image", methods=["POST"])
+    def import_image():
+        """上传简历截图 → OCR 排版识别 → 返回还原 CSS + HTML（还原自定义样式）。"""
+        if "file" not in request.files:
+            return jsonify({"ok": False, "error": "缺少 file 字段（multipart/form-data）"}), 400
+        f = request.files["file"]
+        if not f or not f.filename:
+            return jsonify({"ok": False, "error": "空文件名"}), 400
+        suffix = os.path.splitext(f.filename)[1].lower() or ".png"
+        if suffix not in (".png", ".jpg", ".jpeg", ".webp", ".bmp"):
+            return jsonify({"ok": False,
+                            "error": f"仅支持图片（png/jpg/jpeg/webp/bmp），收到 {suffix}"}), 400
+        import tempfile
+        tmp = os.path.join(tempfile.gettempdir(),
+                           f"resume_img_{os.urandom(4).hex()}{suffix}")
+        f.save(tmp)
+        try:
+            from .render.image_import import import_resume_image
+            r = import_resume_image(tmp)
+        except ImportError:
+            return jsonify({"ok": False,
+                            "error": "OCR 依赖未安装（pip install rapidocr-onnxruntime）"}), 500
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"识别失败: {str(e)[:200]}"}), 500
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        return jsonify({
+            "ok": True,
+            "html": r["html"],
+            "css": r["css"],
+            "meta": r["meta"],
+            "filename": f.filename,
+        })
+
     @app.route("/")
     def index():
         idx = _DEMO_DIR / "index.html"

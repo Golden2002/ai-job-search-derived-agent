@@ -2,6 +2,17 @@
 
 本文件记录本工具的更新路径：版本、改动模块、测试数、关联需求文档。
 
+## v1.8.1 (2026-08-29) — 简历截图上传 → OCR 排版识别 → CSS/HTML 还原
+
+**更新路径**：product/src/resume_product/render/image_import.py（新增）+ executor.py + mcp_server.py + api.py + web/index.html + product/tests/test_image_import.py
+
+- 新增 image_import.py：上传简历截图（图片）→ rapidocr OCR 提取文字 + 边界框 → 几何布局分析（center_x 分类左/右/居中 → 分栏检测 → 栏内按 top 分行 → 字号 box 高度 → 对齐）→ 生成还原自定义样式的 CSS + HTML
+- `import_resume_image(image_path)` 返回 `{html, css, meta}`；css 含 `column-count` 双栏还原
+- executor + MCP 23 工具 `import_resume_image`；api.py 新增 `POST /api/import-image`（png/jpg/jpeg/webp/bmp）
+- 前端上传入口扩展：同时接受 .docx + 图片，`uploadResume()` 按文件类型分发到 /api/import-docx 或 /api/import-image
+- 测试 +3（test_image_import.py：OCR 文字/布局还原/优雅降级）
+- 依赖：rapidocr-onnxruntime + Pillow（可选，无则优雅降级返回空）
+
 ## v1.8.0 (2026-08-29) — Word 简历上传 → 排版还原 CSS（用户核心优化点）
 
 **更新路径**：product/src/resume_product/render/docx_import.py（新增）+ executor.py + mcp_server.py + api.py + product/web/index.html + product/tests/test_docx_import.py

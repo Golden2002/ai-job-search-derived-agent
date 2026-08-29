@@ -160,6 +160,11 @@ def build_server() -> "FastMCP":
         """上传 Word 简历 → 解析排版并生成定制 CSS（完美还原原字体/字号/对齐/缩进/间距/颜色）。"""
         return execute("import_resume_docx", {"docx_path": docx_path})
 
+    @mcp.tool()
+    def import_resume_image(image_path: str = "") -> str:
+        """上传简历截图 → OCR 识别文字与排版（字号/对齐/分栏）→ 生成 CSS/HTML 还原自定义样式。"""
+        return execute("import_resume_image", {"image_path": image_path})
+
     # ═══════════════════════════════════════════════════════════
     # §3.116 ⭐ R3 MCP 三原语补全：resources + prompts
     # ═══════════════════════════════════════════════════════════
