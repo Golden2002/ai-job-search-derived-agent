@@ -1,0 +1,125 @@
+{
+  "scenes": [
+    {"id":"baoyan","label":"保研升学","hint":"面向推免，突出科研、竞赛、论文、绩点排名","sub_scenes":[
+      {"id":"baoyan_clinical","label":"临床医学","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"contact","label":"联系方式","type":"text"},{"key":"target_school","label":"目标院校","type":"text"},{"key":"target_major","label":"目标专业","type":"text"},{"key":"target_direction","label":"目标方向","type":"select","options":["学硕","专硕","直博","硕博连读"]}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"本科院校","type":"text","required":true},{"key":"major","label":"专业","type":"text"},{"key":"gpa","label":"GPA/均分","type":"text"},{"key":"rank","label":"专业排名","type":"text"},{"key":"courses","label":"核心课程","type":"multi","options":["内科学","外科学","病理学","生理学","生物化学","医学统计学"]}]},
+        {"id":"research","label":"科研经历","repeatable":true,"fields":[{"key":"project_name","label":"课题名称","type":"text","required":true},{"key":"advisor","label":"导师/团队","type":"text"},{"key":"design","label":"研究设计","type":"select","options":["观察性","实验性","队列","病例对照","RCT","Meta分析","综述"]},{"key":"methods","label":"实验方法","type":"multi","options":["湿实验","数据分析","临床研究","Meta分析","生信分析"]},{"key":"responsibility","label":"你的职责","type":"select","options":["参与","协助","执行","完成","贡献","主导"]},{"key":"outcome","label":"成果","type":"multi","options":["论文","专利","竞赛","报告"]},{"key":"quantified","label":"量化指标","type":"text","placeholder":"样本量/影响因子/被引"}]},
+        {"id":"paper","label":"论文发表","repeatable":true,"fields":[{"key":"title","label":"题目","type":"text"},{"key":"journal","label":"期刊","type":"text"},{"key":"author_order","label":"作者位次","type":"select","options":["第一作者","共同第一","第二作者","其他"]},{"key":"status","label":"状态","type":"select","options":["已发表","已接收","投稿中","在投"]}]},
+        {"id":"competition","label":"竞赛获奖","repeatable":true,"fields":[{"key":"name","label":"竞赛名称","type":"text"},{"key":"award","label":"奖项","type":"select","options":["国家级一等","国家级二等","国家级三等","省级一等","省级二等","省级三等"]},{"key":"role","label":"角色","type":"select","options":["队长","核心成员","成员"]}]},
+        {"id":"english","label":"英语成绩","fields":[{"key":"cet","label":"四六级","type":"select","options":["CET-6 600+","CET-6 550+","CET-6 500+","CET-6 通过","CET-4 通过"]},{"key":"ielts_toefl","label":"雅思/托福","type":"text"}]},
+        {"id":"skills","label":"技能证书","fields":[{"key":"lab_skills","label":"实验技能","type":"multi","options":["PCR","Western Blot","细胞培养","免疫组化","流式","动物实验"]},{"key":"software","label":"软件","type":"multi","options":["SPSS","GraphPad","R","Python","ImageJ"]}]}
+      ]},
+      {"id":"baoyan_cs","label":"计算机","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_school","label":"目标院校","type":"text"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"本科院校","type":"text"},{"key":"major","label":"专业","type":"text"},{"key":"gpa","label":"GPA","type":"text"},{"key":"rank","label":"排名","type":"text"}]},
+        {"id":"project","label":"项目/科研经历","repeatable":true,"fields":[{"key":"name","label":"项目名称","type":"text"},{"key":"tech","label":"技术栈","type":"multi","options":["Python","C++","Java","PyTorch","TensorFlow"]},{"key":"achievement","label":"成果","type":"text"}]},
+        {"id":"paper","label":"论文发表","fields":[{"key":"papers","label":"论文","type":"long"}]},
+        {"id":"competition","label":"竞赛获奖","fields":[{"key":"awards","label":"奖项","type":"multi","options":["ACM","数学建模","挑战杯","互联网+","其他"]}]},
+        {"id":"english","label":"英语成绩","fields":[{"key":"cet","label":"四六级","type":"text"}]},
+        {"id":"skills","label":"技能","fields":[{"key":"languages","label":"编程语言","type":"multi","options":["Python","C++","Java","Go","Rust"]},{"key":"frameworks","label":"框架","type":"multi","options":["PyTorch","TensorFlow","Spring","React"]}]}
+      ]}
+    ]},
+    {"id":"kaoyan","label":"考研复试","hint":"面向复试，突出报考信息、初试成绩、科研潜质、读研规划","sub_scenes":[
+      {"id":"kaoyan_general","label":"通用","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"contact","label":"联系方式","type":"text"}]},
+        {"id":"apply","label":"报考信息","fields":[{"key":"target_school","label":"报考院校","type":"text"},{"key":"target_major","label":"报考专业","type":"text"},{"key":"initial_score","label":"初试成绩","type":"number"},{"key":"rank_initial","label":"初试排名","type":"text"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"本科院校","type":"text"},{"key":"major","label":"专业","type":"text"},{"key":"gpa","label":"GPA","type":"text"}]},
+        {"id":"research","label":"科研/项目经历","fields":[{"key":"name","label":"项目名称","type":"text"},{"key":"type","label":"类型","type":"select","options":["毕业设计","课程项目","科研课题","竞赛项目"]},{"key":"outcome","label":"成果","type":"text"}]},
+        {"id":"award","label":"获奖与荣誉","fields":[{"key":"awards","label":"奖项","type":"multi","options":["奖学金","竞赛","三好学生","优秀毕业生"]}]},
+        {"id":"skills","label":"技能","fields":[{"key":"skills","label":"技能","type":"multi","options":["编程","数据分析","实验","外语","软件"]}]},
+        {"id":"plan","label":"读研规划","fields":[{"key":"motivation","label":"考研动机","type":"long"},{"key":"research_interest","label":"研究兴趣","type":"long"},{"key":"plan","label":"读研规划","type":"long"}]}
+      ]}
+    ]},
+    {"id":"abroad","label":"出国留学","hint":"面向海外申请，学术 CV：科研、论文、GPA、语言、推荐信","sub_scenes":[
+      {"id":"abroad_general","label":"通用","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"contact","label":"联系方式","type":"text"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"},{"key":"major","label":"专业","type":"text"},{"key":"gpa","label":"GPA","type":"number"},{"key":"rank","label":"排名","type":"text"}]},
+        {"id":"research","label":"科研经历","fields":[{"key":"name","label":"课题","type":"text"},{"key":"advisor","label":"导师","type":"text"},{"key":"outcome","label":"成果","type":"text"}]},
+        {"id":"paper","label":"论文发表","fields":[{"key":"papers","label":"论文","type":"long"}]},
+        {"id":"internship","label":"实习经历","fields":[{"key":"company","label":"机构","type":"text"},{"key":"role","label":"职位","type":"text"}]},
+        {"id":"language","label":"语言成绩","fields":[{"key":"toefl_ielts","label":"托福/雅思","type":"text"},{"key":"gre","label":"GRE/GMAT","type":"text"}]},
+        {"id":"honor","label":"荣誉与推荐","fields":[{"key":"honors","label":"荣誉","type":"multi","options":["奖学金","竞赛","荣誉称号"]},{"key":"recommender","label":"推荐人","type":"text"}]}
+      ]}
+    ]},
+    {"id":"job","label":"求职","hint":"面向就业，细分岗位：技术岗 6 类 + 非技术岗 5 类","sub_scenes":[
+      {"id":"backend","label":"技术岗·后端开发","hint":"服务端/接口/数据库/系统设计","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"contact","label":"联系方式","type":"text"},{"key":"target_role","label":"目标岗位","type":"text","placeholder":"如：Java 后端 / Go 后端"},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心技能","fields":[{"key":"languages","label":"语言","type":"multi","options":["Java","Go","Python","C++","Rust","Node.js"]},{"key":"frameworks","label":"框架","type":"multi","options":["Spring Boot","Spring Cloud","Gin","Django","Flask","gRPC"]},{"key":"db","label":"数据库","type":"multi","options":["MySQL","PostgreSQL","Redis","MongoDB","TiDB"]},{"key":"middleware","label":"中间件","type":"multi","options":["Kafka","RabbitMQ","RocketMQ","ES","Nginx"]}]},
+        {"id":"arch","label":"架构与工程能力","fields":[{"key":"distributed","label":"分布式","type":"multi","options":["微服务","分布式事务","分布式锁","服务治理","限流熔断"]},{"key":"concurrency","label":"高并发","type":"text","placeholder":"如：QPS 峰值 / 压测结果"},{"key":"optimize","label":"性能优化","type":"text","placeholder":"如：接口耗时 500ms→50ms"}]},
+        {"id":"work","label":"工作/项目经历","repeatable":true,"fields":[{"key":"company","label":"公司/项目","type":"text"},{"key":"responsibility","label":"职责","type":"long"},{"key":"achievement","label":"成果(量化)","type":"long","placeholder":"如：支撑日活 100 万 / 可用性 99.99%"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"},{"key":"major","label":"专业","type":"text"}]}
+      ]},
+      {"id":"frontend","label":"技术岗·前端开发","hint":"页面/交互/工程化/性能","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"目标岗位","type":"text","placeholder":"如：前端 / Web 前端"},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心技能","fields":[{"key":"lang","label":"基础","type":"multi","options":["HTML/CSS","JavaScript","TypeScript"]},{"key":"frameworks","label":"框架","type":"multi","options":["React","Vue","Angular","Next.js","小程序"]},{"key":"tooling","label":"工程化","type":"multi","options":["Webpack","Vite","Rollup","Babel","Monorepo"]}]},
+        {"id":"ability","label":"工程与优化","fields":[{"key":"perf","label":"性能优化","type":"text","placeholder":"如：首屏 2s→0.8s / 白屏优化"},{"key":"quality","label":"工程质量","type":"multi","options":["组件库","单元测试","CI/CD","埋点监控","微前端"]},{"key":"visual","label":"可视化/复杂交互","type":"text","placeholder":"如：Canvas/SVG/WebGL"}]},
+        {"id":"work","label":"工作/项目经历","repeatable":true,"fields":[{"key":"company","label":"公司/项目","type":"text"},{"key":"achievement","label":"成果(量化)","type":"long"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"algorithm","label":"技术岗·算法工程师","hint":"机器学习/深度学习/推荐/搜索/NLP/CV","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"目标方向","type":"select","options":["推荐算法","搜索算法","NLP","CV","广告算法","通用机器学习"],"placeholder":"如：推荐算法"},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"算法基础","fields":[{"key":"ml","label":"机器学习","type":"multi","options":["LR/GBDT","深度学习","Transformer","强化学习","图神经网络"]},{"key":"frameworks","label":"框架","type":"multi","options":["PyTorch","TensorFlow","JAX"]},{"key":"nlp_cv","label":"方向技能","type":"multi","options":["LLM/大模型","推荐系统","目标检测","语义理解","多模态"]}]},
+        {"id":"engineer","label":"工程能力","fields":[{"key":"bigdata","label":"大数据","type":"multi","options":["Spark","Flink","Hive","Kafka"]},{"key":"deploy","label":"部署","type":"multi","options":["模型服务化","特征工程","A/B测试","模型监控"]},{"key":"metric","label":"业务指标","type":"text","placeholder":"如：CTR 提升 10% / 召回率 85%"}]},
+        {"id":"competition","label":"竞赛/论文","fields":[{"key":"competition","label":"竞赛","type":"multi","options":["Kaggle","天池","ACM","数学建模"]},{"key":"paper","label":"论文","type":"text","placeholder":"如：顶会/期刊"}]},
+        {"id":"work","label":"工作/项目经历","repeatable":true,"fields":[{"key":"company","label":"公司/项目","type":"text"},{"key":"achievement","label":"成果(量化)","type":"long"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"},{"key":"major","label":"专业","type":"text"}]}
+      ]},
+      {"id":"data","label":"技术岗·数据分析","hint":"SQL/统计/业务分析/数据产品","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"目标岗位","type":"select","options":["数据分析","商业分析","数据产品","BI工程师"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心技能","fields":[{"key":"sql","label":"SQL","type":"text","placeholder":"如：熟练窗口函数/复杂查询"},{"key":"tools","label":"工具","type":"multi","options":["Python","Pandas","Excel","Tableau","PowerBI","FineBI"]},{"key":"stats","label":"统计","type":"multi","options":["AB测试","假设检验","回归","聚类","时间序列"]}]},
+        {"id":"business","label":"业务能力","fields":[{"key":"domain","label":"业务领域","type":"select","options":["用户增长","电商","金融","内容","本地生活"]},{"key":"metric","label":"指标体系","type":"text","placeholder":"如：搭建北极星指标体系"},{"key":"insight","label":"分析案例","type":"long","placeholder":"如：通过漏斗分析定位流失，优化后转化率提升 X%"}]},
+        {"id":"work","label":"工作/项目经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"},{"key":"achievement","label":"成果(量化)","type":"long"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"qa","label":"技术岗·测试开发","hint":"自动化/接口/性能/质量保障","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"目标岗位","type":"select","options":["测试开发","自动化测试","性能测试","质量保障"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心技能","fields":[{"key":"lang","label":"语言","type":"multi","options":["Python","Java","Shell"]},{"key":"auto","label":"自动化","type":"multi","options":["Selenium","Appium","Pytest","JUnit","接口自动化"]},{"key":"perf","label":"性能/其他","type":"multi","options":["JMeter","压测","安全测试","兼容性测试"]}]},
+        {"id":"quality","label":"质量保障","fields":[{"key":"process","label":"质量流程","type":"multi","options":["测试用例设计","缺陷管理","CI/CD 测试","覆盖率"]},{"key":"devops","label":"工具链","type":"multi","options":["Jenkins","Docker","K8s","Git"]}]},
+        {"id":"work","label":"工作/项目经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"},{"key":"achievement","label":"成果(量化)","type":"text","placeholder":"如：自动化覆盖率 80% / 提效 50%"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"devops","label":"技术岗·运维/DevOps","hint":"K8s/CI-CD/监控/稳定性","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"目标岗位","type":"select","options":["运维工程师","SRE","DevOps工程师","云平台工程师"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心技能","fields":[{"key":"container","label":"容器/编排","type":"multi","options":["Docker","Kubernetes","Helm","ServiceMesh"]},{"key":"cloud","label":"云平台","type":"multi","options":["阿里云","AWS","腾讯云","GCP"]},{"key":"cicd","label":"CI/CD","type":"multi","options":["Jenkins","GitLab CI","ArgoCD","GitHub Actions"]}]},
+        {"id":"reliability","label":"稳定性工程","fields":[{"key":"monitor","label":"监控","type":"multi","options":["Prometheus","Grafana","ELK","告警"]},{"key":"sre","label":"SRE 实践","type":"multi","options":["容量规划","故障演练","SLO/SLI","混沌工程"]},{"key":"auto","label":"自动化","type":"multi","options":["IaC(Terraform)","Ansible","脚本化"]}]},
+        {"id":"work","label":"工作/项目经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"},{"key":"achievement","label":"成果(量化)","type":"text","placeholder":"如：可用性 99.95% / 发布提效 3 倍"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"product","label":"非技术岗·产品经理","hint":"需求/原型/数据/项目推进","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"目标方向","type":"select","options":["B端产品","C端产品","AI产品","数据产品","增长产品"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心能力","fields":[{"key":"skills","label":"产品技能","type":"multi","options":["需求分析","PRD撰写","原型设计","竞品分析","用户调研","数据分析"]},{"key":"tools","label":"工具","type":"multi","options":["Axure","Figma","XMind","SQL","飞书文档"]}]},
+        {"id":"project","label":"产品项目","repeatable":true,"fields":[{"key":"name","label":"产品/项目","type":"text"},{"key":"role","label":"职责","type":"text"},{"key":"achievement","label":"成果(量化)","type":"long","placeholder":"如：DAU 提升 30% / 上线功能转化率 25%"}]},
+        {"id":"work","label":"实习/工作经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"},{"key":"role","label":"职位","type":"text"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"operation","label":"非技术岗·运营","hint":"用户/内容/活动/增长，突出数据","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"运营方向","type":"select","options":["用户运营","内容运营","活动运营","增长运营","社区运营"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心能力","fields":[{"key":"skills","label":"运营技能","type":"multi","options":["活动策划","内容创作","用户分层","社群运营","数据分析","增长实验"]},{"key":"tools","label":"工具","type":"multi","options":["Excel","SQL","公众号","短视频","EDM/推送"]}]},
+        {"id":"project","label":"运营案例","repeatable":true,"fields":[{"key":"name","label":"活动/项目","type":"text"},{"key":"achievement","label":"成果(量化)","type":"long","placeholder":"如：活动参与 10万+ / 拉新 5万 / 转化率 20%"}]},
+        {"id":"work","label":"实习/工作经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"marketing","label":"非技术岗·市场营销/品牌","hint":"品牌/投放/内容/公关","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"目标方向","type":"select","options":["品牌","市场投放","公关","内容营销","整合营销"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心能力","fields":[{"key":"skills","label":"营销技能","type":"multi","options":["品牌策划","投放优化","内容创作","媒介投放","公关传播","市场调研"]},{"key":"channels","label":"渠道","type":"multi","options":["抖音","小红书","B站","公众号","微博","私域"]}]},
+        {"id":"project","label":"营销案例","repeatable":true,"fields":[{"key":"name","label":"campaign","type":"text"},{"key":"achievement","label":"成果(量化)","type":"long","placeholder":"如：曝光 1000万 / ROI 3 / 涨粉 50万"}]},
+        {"id":"work","label":"实习/工作经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"hr","label":"非技术岗·人力资源","hint":"招聘/绩效/员工关系/HRBP","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"HR 方向","type":"select","options":["招聘","HRBP","绩效薪酬","员工关系","培训发展"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心能力","fields":[{"key":"skills","label":"HR 技能","type":"multi","options":["招聘全流程","人才盘点","绩效设计","劳动关系","组织发展"]},{"key":"tools","label":"工具","type":"multi","options":["HR系统","Excel","招聘平台","测评工具"]}]},
+        {"id":"work","label":"工作经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"},{"key":"role","label":"职位","type":"text"},{"key":"achievement","label":"成果(量化)","type":"text","placeholder":"如：年招 200 人 / 人效提升 20%"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]},
+      {"id":"sales","label":"非技术岗·销售/商务","hint":"业绩/客户/谈判/大客户","stages":[
+        {"id":"basic","label":"基本信息","fields":[{"key":"name","label":"姓名","type":"text","required":true},{"key":"target_role","label":"销售方向","type":"select","options":["大客户销售","渠道销售","商务拓展(BD)","解决方案销售","电销/网销"]},{"key":"years","label":"工作年限","type":"select","options":["应届","1-3年","3-5年","5年+"]}]},
+        {"id":"core","label":"核心能力","fields":[{"key":"skills","label":"销售技能","type":"multi","options":["客户开发","需求挖掘","谈判","关系维护","方案销售","回款管理"]}]},
+        {"id":"performance","label":"业绩","repeatable":true,"fields":[{"key":"year","label":"年份","type":"text"},{"key":"revenue","label":"业绩(量化)","type":"text","placeholder":"如：年销售额 800 万 / 完成率 130% / 新签客户 50 家"}]},
+        {"id":"work","label":"工作经历","repeatable":true,"fields":[{"key":"company","label":"公司","type":"text"},{"key":"role","label":"职位","type":"text"}]},
+        {"id":"education","label":"教育背景","fields":[{"key":"school","label":"院校","type":"text"}]}
+      ]}
+    ]}
+  ]
+}

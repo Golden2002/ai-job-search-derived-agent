@@ -51,6 +51,16 @@ def create_app(config: dict | None = None) -> Flask:
     def role_packs():
         return jsonify({"ok": True, "role_packs": list_role_packs()})
 
+    @app.route("/api/scene-cards")
+    def scene_cards():
+        """分场景预制卡片（场景→方向→维度→字段，对话式收集数据源）。"""
+        import json as _json
+        p = Path(__file__).resolve().parent / "data" / "scene_cards.json"
+        try:
+            return jsonify({"ok": True, **_json.loads(p.read_text(encoding="utf-8"))})
+        except Exception as e:
+            return jsonify({"ok": False, "error": str(e)[:200]}), 500
+
     @app.route("/api/templates")
     def templates():
         """PDF 渲染模板清单（前端模板示例卡片数据源）。"""

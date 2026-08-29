@@ -1,483 +1,354 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>通用简历制作 Agent</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>对话式简历制作</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #FAF8F4; color: #1F1B16; }
-  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
-  h1 { font-size: 26px; margin-bottom: 6px; color: #3D55E8; }
-  .sub { color: #5C534A; margin-bottom: 20px; font-size: 14px; }
-  .steps { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; font-size: 13px; color: #5C534A; }
-  .steps .s { background: #fff; border: 1px solid #e2dccf; padding: 6px 14px; border-radius: 16px; }
-  .steps .s.active { background: #4F6BFF; color: #fff; border-color: #4F6BFF; }
-  .steps .s.done { background: #E8EDFF; color: #3D55E8; border-color: #3D55E8; }
-  .card { background: #fff; border: 1px solid #e2dccf; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-  .card h2 { font-size: 16px; margin-bottom: 12px; color: #1F1B16; }
-  textarea, input[type=text] { width: 100%; border: 1px solid #d8d2c6; border-radius: 8px; padding: 10px 12px; font-size: 14px; }
-  textarea { min-height: 130px; resize: vertical; font-family: inherit; line-height: 1.7; }
-  label { display: block; font-size: 13px; color: #5C534A; margin: 12px 0 6px; }
-  button { background: #4F6BFF; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; cursor: pointer; margin-top: 12px; }
-  button:hover { background: #3D55E8; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  button.secondary { background: #fff; color: #4F6BFF; border: 1px solid #4F6BFF; margin-left: 8px; }
-  .error { color: #c0392b; font-size: 13px; margin-top: 8px; }
-  .fact { background: #F5F2EC; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 14px; border-left: 4px solid #d8d2c6; }
-  .fact.verified { border-left-color: #27ae60; }
-  .fact.unverified { border-left-color: #f39c12; }
-  .fact.exaggerated { border-left-color: #c0392b; }
-  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
-  .badge.verified { background: #e3f6ec; color: #27ae60; }
-  .badge.unverified { background: #fef4e2; color: #b9770e; }
-  .badge.exaggerated { background: #fdeaea; color: #c0392b; }
-  .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 10px 0; }
-  .score-item { background: #F5F2EC; border-radius: 8px; padding: 10px; text-align: center; }
-  .score-item .num { font-size: 20px; font-weight: 700; color: #3D55E8; }
-  .score-item .lbl { font-size: 12px; color: #5C534A; margin-top: 2px; }
-  .verdict { font-size: 15px; font-weight: 600; margin: 8px 0; }
-  .gap-chip { display: inline-block; background: #fef4e2; color: #b9770e; border-radius: 12px; padding: 3px 10px; font-size: 12px; margin: 3px; }
-  .match-chip { display: inline-block; background: #e3f6ec; color: #27ae60; border-radius: 12px; padding: 3px 10px; font-size: 12px; margin: 3px; }
-  .versions { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
-  .ver-card { background: #F5F2EC; border-radius: 10px; padding: 12px; border: 1px solid #e2dccf; cursor: pointer; }
-  .ver-card:hover { border-color: #4F6BFF; }
-  .ver-card.selected { border-color: #4F6BFF; background: #E8EDFF; }
-  .ver-card h3 { font-size: 14px; margin-bottom: 8px; }
-  .ver-card p { font-size: 13px; line-height: 1.7; white-space: pre-wrap; max-height: 160px; overflow-y: auto; }
-  #result { white-space: pre-wrap; background: #F5F2EC; border-radius: 8px; padding: 16px; font-size: 14px; line-height: 1.7; margin-top: 12px; }
-  #result[contenteditable="true"] { border: 1px dashed #4F6BFF; background: #fff; }
-  .ats-score { font-size: 28px; font-weight: 700; }
-  .ats-pass { color: #27ae60; } .ats-mid { color: #f39c12; } .ats-fail { color: #c0392b; }
-  .hidden { display: none; }
-  .questions { font-size: 13px; color: #b9770e; background: #fef4e2; border-radius: 8px; padding: 10px; margin-top: 8px; }
-  .tpl-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 8px; }
-  .tpl-card { border: 1px solid #e2dccf; border-radius: 10px; padding: 10px; cursor: pointer; background: #fff; }
-  .tpl-card:hover { border-color: #4F6BFF; }
-  .tpl-card.selected { border-color: #4F6BFF; background: #E8EDFF; }
-  .tpl-preview { height: 52px; border-radius: 6px; margin-bottom: 8px; border: 1px solid #e2dccf; background: #fff; position: relative; overflow: hidden; }
-  .tpl-preview .bar { height: 5px; width: 55%; margin: 8px auto; border-radius: 3px; }
-  .tpl-preview .line { height: 3px; width: 80%; margin: 4px auto; border-radius: 2px; background: #d8d2c6; }
-  .tpl-card h3 { font-size: 13px; margin-bottom: 2px; }
-  .tpl-card .desc { font-size: 11px; color: #5C534A; }
-  .improve-panel { margin-top: 14px; border-top: 1px dashed #e2dccf; padding-top: 12px; }
-  .improve-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; }
-  .sug-card { border: 1px solid #e2dccf; border-radius: 10px; padding: 10px 12px; margin-top: 8px; background: #fff; }
-  .sug-card.applied { background: #E8EDFF; border-color: #4F6BFF; }
-  .sug-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-  .sug-dim { font-size: 11px; color: #3D55E8; font-weight: 600; }
-  .sug-type { font-size: 10px; padding: 1px 8px; border-radius: 10px; }
-  .sug-type.rewrite { background: #e3f6ec; color: #27ae60; }
-  .sug-type.gap { background: #fef4e2; color: #b9770e; }
-  .sug-reason { font-size: 12px; color: #5C534A; margin-bottom: 4px; }
-  .sug-orig { font-size: 12px; color: #8a8a8a; text-decoration: line-through; margin-bottom: 2px; }
-  .sug-new { font-size: 12px; color: #1F1B16; background: #F5F2EC; border-radius: 6px; padding: 4px 8px; margin-bottom: 2px; }
-  .sug-action { font-size: 11px; color: #5C534A; margin-bottom: 4px; }
-  .sug-note { font-size: 11px; color: #b9770e; }
-  .sug-btns { margin-top: 4px; }
-  .improve-actions { margin-top: 10px; }
+:root{
+  --brand-600:#4F46E5; --brand-500:#6366F1; --brand-700:#4338CA; --brand-50:#EEF2FF;
+  --ink-900:#0F172A; --ink-700:#334155; --ink-500:#64748B; --ink-400:#94A3B8; --ink-200:#E2E8F0; --ink-100:#F1F5F9; --ink-50:#F8FAFC;
+  --success:#10B981; --success-600:#059669; --warning:#F59E0B; --danger:#EF4444; --info:#0EA5E9;
+  --bg-app:#F5F7FB; --surface:#FFFFFF;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06); --shadow-md:0 4px 12px rgba(15,23,42,.08);
+  --font:-apple-system,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg-app);color:var(--ink-900);font-size:14px;line-height:1.5;height:100vh;overflow:hidden}
+.header{height:56px;display:flex;align-items:center;gap:16px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--ink-200);position:relative;z-index:10}
+.header .logo{font-weight:700;font-size:16px}
+.header .crumb{color:var(--ink-500);font-size:13px}
+.header .spacer{flex:1}
+.btn{background:var(--brand-600);color:#fff;border:none;padding:8px 18px;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
+.btn:hover{background:var(--brand-700)}
+.btn.ghost{background:transparent;color:var(--brand-600);border:1px solid var(--ink-200)}
+.btn.ghost:hover{background:var(--brand-50)}
+.layout{display:grid;grid-template-columns:232px 1fr 340px;height:calc(100vh - 56px)}
+@media(max-width:1279px){.layout{grid-template-columns:200px 1fr}}
+@media(max-width:959px){.layout{grid-template-columns:1fr}.nav,.summary{display:none}}
+
+.nav{background:var(--surface);border-right:1px solid var(--ink-200);overflow-y:auto;padding:12px}
+.nav .scene-head{padding:8px;font-weight:700;font-size:14px;color:var(--ink-900);cursor:pointer;border-radius:var(--radius-sm)}
+.nav .scene-head:hover{background:var(--ink-100)}
+.nav .scene-head .count{font-size:11px;color:var(--ink-400);font-weight:400;float:right}
+.nav .stage{padding:7px 8px 7px 20px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:var(--ink-700);display:flex;align-items:center;gap:8px}
+.nav .stage:hover{background:var(--ink-100)}
+.nav .stage.active{background:var(--brand-50);color:var(--brand-700);font-weight:600}
+.nav .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-200);flex:0 0 auto}
+.nav .dot.done{background:var(--success)}
+.nav .dot.partial{background:var(--warning)}
+.nav .stage.active .dot{background:var(--brand-600)}
+.nav .upload{padding:12px 8px;border-top:1px solid var(--ink-200);margin-top:12px}
+.nav .upload label{font-size:12px;color:var(--ink-500)}
+.nav .upload input[type=file]{width:100%;margin-top:6px;font-size:12px}
+
+.chat{display:flex;flex-direction:column;min-width:0}
+.card-dock{background:var(--surface);border-bottom:1px solid var(--ink-200);padding:12px 16px;max-height:42%;overflow-y:auto}
+.card-dock .card-title{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;cursor:pointer}
+.card-dock .progress{font-size:12px;color:var(--ink-500);margin-left:auto}
+.card-dock.collapsed .card-body{display:none}
+.card-dock.collapsed .chev{transform:rotate(-90deg)}
+.chev{transition:transform .2s}
+.card-body .hint{font-size:12px;color:var(--ink-500);margin:6px 0 2px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media(max-width:640px){.field-grid{grid-template-columns:1fr}}
+.field{background:var(--ink-50);border:1px dashed var(--ink-200);border-radius:var(--radius-md);padding:8px 10px;cursor:pointer;transition:all .2s}
+.field:hover{border-color:var(--brand-500)}
+.field .f-label{font-size:12px;color:var(--ink-500);display:flex;align-items:center;gap:4px}
+.field .f-label .tag{font-size:10px;color:var(--brand-600);background:var(--brand-50);padding:1px 6px;border-radius:var(--radius-sm)}
+.field .f-value{font-size:13px;color:var(--ink-900);margin-top:3px;min-height:18px;word-break:break-all}
+.field .f-value.placeholder{color:var(--ink-400)}
+.field.filled{border:1px solid var(--success);background:#ECFDF5}
+.field.partial{border:1px solid var(--warning)}
+.msg-list{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:82%;padding:10px 14px;border-radius:var(--radius-lg);font-size:14px;line-height:1.6;white-space:pre-wrap}
+.msg.ai{background:var(--surface);border:1px solid var(--ink-200);align-self:flex-start}
+.msg.user{background:var(--brand-600);color:#fff;align-self:flex-end}
+.msg .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{padding:5px 12px;border-radius:999px;border:1px solid var(--brand-500);color:var(--brand-600);font-size:12px;cursor:pointer;background:#fff}
+.chip:hover{background:var(--brand-50)}
+.chip.sel{background:var(--brand-600);color:#fff;border-color:var(--brand-600)}
+.composer{background:var(--surface);border-top:1px solid var(--ink-200);padding:10px 16px;display:flex;gap:8px;align-items:flex-end}
+.composer textarea{flex:1;border:1px solid var(--ink-200);border-radius:var(--radius-md);padding:9px 12px;font-family:var(--font);font-size:14px;resize:none;height:40px;max-height:120px}
+.composer textarea:focus{outline:none;border-color:var(--brand-500)}
+
+.summary{background:var(--surface);border-left:1px solid var(--ink-200);overflow-y:auto;padding:16px;display:flex;flex-direction:column}
+.summary .s-head{font-weight:700;font-size:14px;margin-bottom:8px}
+.summary .ring{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.summary .ring-num{font-size:24px;font-weight:700;color:var(--brand-600)}
+.summary .ring-bar{flex:1;height:8px;background:var(--ink-100);border-radius:999px;overflow:hidden}
+.summary .ring-fill{height:100%;background:var(--brand-600);border-radius:999px;transition:width .3s}
+.summary .s-group{margin-bottom:14px}
+.summary .s-group .g-name{font-size:13px;font-weight:600;color:var(--ink-700);margin-bottom:6px;display:flex;justify-content:space-between}
+.summary .s-group .g-name .st{font-size:11px;color:var(--ink-400)}
+.summary .s-item{font-size:12px;color:var(--ink-500);padding:3px 0;display:flex;justify-content:space-between;gap:8px}
+.summary .s-item .v{color:var(--ink-900);text-align:right;word-break:break-all}
+.summary .cta{margin-top:auto;padding-top:16px;border-top:1px solid var(--ink-200);display:flex;flex-direction:column;gap:8px}
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>通用简历制作 Agent</h1>
-  <p class="sub">经历 → 事实校验 → JD 匹配 → 三版本生成 → ATS 校验 → 导出</p>
+<div class="header">
+  <span class="logo">📄 对话式简历制作</span>
+  <span class="crumb" id="crumb">选择场景开始</span>
+  <span class="spacer"></span>
+  <button class="btn ghost" onclick="toggleCard()">维度卡片</button>
+  <button class="btn" id="btnGen" onclick="generateResume()">生成简历</button>
+</div>
 
-  <div class="steps" id="steps">
-    <span class="s active" data-step="1">① 填写经历与 JD</span>
-    <span class="s" data-step="2">② 事实校验</span>
-    <span class="s" data-step="3">③ JD 匹配评分</span>
-    <span class="s" data-step="4">④ 三版本生成</span>
-    <span class="s" data-step="5">⑤ ATS 校验</span>
-    <span class="s" data-step="6">⑥ 在线编辑与导出</span>
-  </div>
-
-  <!-- ① 经历 + JD -->
-  <div class="card" id="card1">
-    <h2>你的经历描述（教育/实习/项目/技能——尽量具体，含量化数据）</h2>
-    <p style="font-size:13px;color:#5C534A;margin:0 0 8px">💡 已有简历？上传 <b>Word / PDF / Excel / 截图</b>，自动识别并还原排版（字体/字号/颜色/对齐/缩进/表格/分栏/图片）并在导出 PDF 时应用：</p>
-    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <input type="file" id="resumeFile" accept=".docx,.pdf,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp,.bmp">
-      <button class="secondary" onclick="uploadResume()">上传并还原排版</button>
-    </div>
-    <div class="error" id="errUpload"></div>
-    <textarea id="experience" placeholder="例：我在字节跳动实习，负责抖音推荐算法优化，通过 A/B 测试提升点击率 15%；主导了用户画像模块开发，覆盖 500 万用户。"></textarea>
-    <label>目标岗位（输入完整 JD 更精准）</label>
-    <input type="text" id="target_role" placeholder="例：算法工程师（要求 Python、机器学习、推荐系统……）">
-    <label>你的技能（逗号分隔）</label>
-    <input type="text" id="skills" placeholder="例：Python, SQL, 机器学习, A/B 测试, 数据分析">
-    <br>
-    <button onclick="doEnrich()">开始：提取事实卡并校验</button>
-    <div class="error" id="err1"></div>
-  </div>
-
-  <!-- ② 事实校验 -->
-  <div class="card hidden" id="card2">
-    <h2>事实校验（未确认信息不升级、不编造）</h2>
-    <div id="facts"></div>
-    <div class="questions hidden" id="confirmQ"></div>
-    <button class="secondary" onclick="doMatch()">下一步：JD 匹配评分</button>
-  </div>
-
-  <!-- ③ JD 匹配 -->
-  <div class="card hidden" id="card3">
-    <h2>JD 匹配度评分（五维度）</h2>
-    <div id="matchResult"></div>
-    <!-- 改进建议面板（低分触发） -->
-    <div class="improve-panel hidden" id="improvePanel">
-      <div class="improve-head">
-        <span>💡 低分改进建议</span>
-        <button class="secondary" onclick="doImprove()" id="improveBtn">生成针对性改进建议</button>
+<div class="layout">
+  <aside class="nav" id="nav"></aside>
+  <main class="chat">
+    <div class="card-dock" id="cardDock">
+      <div class="card-title" onclick="toggleCard()">
+        <span class="chev">▾</span><span id="cardStageName">阶段卡片</span>
+        <span class="progress" id="cardProgress"></span>
       </div>
-      <div id="improveList"></div>
-      <div class="improve-actions hidden" id="improveActions">
-        <button class="secondary" onclick="reScore()">重新评分（查看提升效果）</button>
-        <button class="secondary" onclick="undoAll()">全部撤销</button>
-      </div>
+      <div class="card-body" id="cardBody"></div>
     </div>
-    <button class="secondary" onclick="doVersions()">下一步：生成三版本</button>
-  </div>
-
-  <!-- ④ 三版本 -->
-  <div class="card hidden" id="card4">
-    <h2>多版本生成（稳妥版 / 专业版 / 高竞争力版）</h2>
-    <div class="versions" id="verContainer"></div>
-    <div id="result" contenteditable="true" title="点击可直接编辑">（选择上方版本后在此显示完整简历，可直接编辑）</div>
-    <button class="secondary" onclick="doATS()">下一步：ATS 校验</button>
-  </div>
-
-  <!-- ⑤ ATS -->
-  <div class="card hidden" id="card5">
-    <h2>ATS 兼容性校验</h2>
-    <div id="atsResult"></div>
-    <button class="secondary" onclick="showStep(6)">下一步：导出下载</button>
-  </div>
-
-  <!-- ⑥ 导出 -->
-  <div class="card hidden" id="card6">
-    <h2>导出下载</h2>
-    <p style="font-size:13px;color:#5C534A">选择 PDF 渲染模板（可自定义 CSS 换肤）：</p>
-    <div class="tpl-list" id="tplList"></div>
-    <p style="font-size:13px;color:#5C534A;margin-top:12px">编辑完成后选择格式导出：</p>
-    <button onclick="downloadHTML()">导出 HTML</button>
-    <button onclick="downloadWord()">导出 Word</button>
-    <button onclick="downloadPDF()">导出 PDF</button>
-    <div class="error" id="err6"></div>
-  </div>
+    <div class="msg-list" id="msgList"></div>
+    <div class="composer">
+      <textarea id="input" placeholder="说说你的经历，AI 会引导你补全信息…（Enter 发送，Shift+Enter 换行）"></textarea>
+      <button class="btn" onclick="send()">发送</button>
+    </div>
+  </main>
+  <aside class="summary" id="summary"></aside>
 </div>
 
 <script>
-let currentFacts = [];
-let matchResult = null;
-let chosenVersion = 'professional';
-let chosenTemplate = 'classic';
-let templatesLoaded = false;
+let scenes = [];
+let state = {};     // {stageId: {fieldKey: value}}
+let filled = {};    // {stageId: {fieldKey: "filled"|"partial"}}
+let currentScene = null, currentStage = null;
 let importedCss = null;
 
-function stripHtml(html) {
-  const d = document.createElement('div');
-  d.innerHTML = html;
-  return d.textContent || '';
-}
-
-async function uploadResume() {
-  setErr('errUpload', '');
-  const file = document.getElementById('resumeFile').files[0];
-  if (!file) { setErr('errUpload', '请先选择简历文件'); return; }
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const endpointMap = {
-    docx: '/api/import-docx',
-    pdf: '/api/import-pdf',
-    xlsx: '/api/import-xlsx',
-    xlsm: '/api/import-xlsx',
-    png: '/api/import-image', jpg: '/api/import-image',
-    jpeg: '/api/import-image', webp: '/api/import-image', bmp: '/api/import-image',
-  };
-  const endpoint = endpointMap[ext];
-  if (!endpoint) { setErr('errUpload', '不支持的文件类型：' + ext); return; }
-  const fd = new FormData();
-  fd.append('file', file);
-  try {
-    const r = await fetch(endpoint, {method: 'POST', body: fd});
+(async function init(){
+  try{
+    const r = await fetch('/api/scene-cards');
     const d = await r.json();
-    if (!d.ok) { setErr('errUpload', d.error || '上传失败'); return; }
-    importedCss = d.css;
-    const plain = stripHtml(d.html);
-    if (plain.trim()) {
-      document.getElementById('experience').value = plain.trim();
-    }
-    const m = d.meta || {};
-    const srcLabel = {docx:'Word', pdf:'PDF', xlsx:'Excel', xlsm:'Excel',
-                      png:'截图', jpg:'截图', jpeg:'截图', webp:'截图', bmp:'截图'}[ext] || ext;
-    setErr('errUpload', '✅ 已还原 ' + srcLabel + ' 的 ' + m.paragraphs + ' 行/段'
-      + (m.columns ? ' / ' + m.columns + ' 栏' : '')
-      + (m.tables ? ' / ' + m.tables + ' 表格' : '')
-      + (m.merged_cells ? ' / ' + m.merged_cells + ' 合并单元格' : '')
-      + ' 排版（导出 PDF 时应用还原 CSS）');
-  } catch (e) { setErr('errUpload', '上传失败：' + e.message); }
+    if(d.ok){ scenes = d.scenes || []; }
+  }catch(e){}
+  renderNav();
+  renderSummary();
+  addMsg('ai','你好！我会通过对话帮你完整收集简历信息。先从左侧选择一个场景，我会按「阶段」逐条追问，帮你补全所有信息。也可以直接告诉我你的经历。');
+})();
+
+function findScene(id){ return scenes.find(s=>s.id===id); }
+function findStage(id){ for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]) if(st.id===id) return st; return null; }
+
+function renderNav(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = scenes.map(s => `
+    <div class="scene-head" onclick="toggleScene('${s.id}')">${esc(s.label)}<span class="count">${(s.sub_scenes||[]).length} 子场景</span></div>
+    <div id="scene-${s.id}">
+      ${(s.sub_scenes||[]).map(ss => `
+        <div class="dir-head">${esc(ss.label)}</div>
+        ${(ss.stages||[]).map(st => `
+          <div class="stage" data-stage="${st.id}" onclick="selectStage('${s.id}','${st.id}')">
+            <span class="dot" id="dot-${st.id}"></span>${esc(st.label)}
+          </div>`).join('')}
+      `).join('')}
+    </div>
+    <div class="upload">
+      <label>💡 已有简历？上传 Word/PDF/Excel/截图：</label>
+      <input type="file" accept=".docx,.pdf,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp,.bmp" onchange="uploadResume(this.files[0])">
+      <div id="uploadMsg" style="font-size:11px;color:var(--success-600);margin-top:4px"></div>
+    </div>
+  `).join('');
 }
 
-function showStep(n) {
-  document.querySelectorAll('#steps .s').forEach(el => {
-    const s = +el.dataset.step;
-    el.className = 's ' + (s === n ? 'active' : (s < n ? 'done' : ''));
-  });
-  for (let i = 1; i <= 6; i++) {
-    document.getElementById('card' + i).classList.toggle('hidden', i !== n);
-  }
-  if (n === 6 && !templatesLoaded) loadTemplates();
-  if (n >= 6) window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+function toggleScene(sid){ const el=document.getElementById('scene-'+sid); el.style.display = el.style.display==='none'?'':'none'; }
+
+function selectStage(sid, stid){
+  currentScene = sid; currentStage = stid;
+  document.querySelectorAll('.nav .stage').forEach(el=>el.classList.remove('active'));
+  document.querySelector(`.nav .stage[data-stage="${stid}"]`).classList.add('active');
+  const st = findStage(stid);
+  const s = findScene(sid);
+  const ss = (s.sub_scenes||[]).find(x => (x.stages||[]).some(y=>y.id===stid));
+  document.getElementById('crumb').textContent = `${s.label} / ${ss?ss.label:''} / ${st.label}`;
+  document.getElementById('cardStageName').textContent = st.label;
+  renderCard(st);
+  renderSummary();
+  addMsg('ai', `开始收集「${st.label}」。${st.hint||''}`);
+  askNext(st);
 }
 
-async function loadTemplates() {
-  try {
-    const r = await fetch('/api/templates');
-    const d = await r.json();
-    if (!d.ok || !d.templates) return;
-    templatesLoaded = true;
-    document.getElementById('tplList').innerHTML = d.templates.map(t => `
-      <div class="tpl-card ${t.id===chosenTemplate?'selected':''}" data-tpl="${t.id}" onclick="pickTemplate('${t.id}')">
-        <div class="tpl-preview"><div class="bar" style="background:${t.accent}"></div><div class="line"></div><div class="line" style="width:60%"></div></div>
-        <h3>${escapeHtml(t.name)}</h3>
-        <div class="desc">${escapeHtml(t.description)}</div>
-      </div>`).join('');
-  } catch(e) {}
-}
-
-function pickTemplate(id) {
-  chosenTemplate = id;
-  document.querySelectorAll('.tpl-card').forEach(el => el.classList.toggle('selected', el.dataset.tpl === id));
-}
-
-function setErr(id, msg) { document.getElementById(id).textContent = msg || ''; }
-
-async function doEnrich() {
-  setErr('err1', '');
-  const raw = document.getElementById('experience').value;
-  if (!raw.trim()) { setErr('err1', '请填写经历描述'); return; }
-  const btn = event && event.target; if (btn) btn.disabled = true;
-  try {
-    const r = await fetch('/api/enrich', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({raw_text: raw})});
-    const d = await r.json();
-    if (!d.ok) { setErr('err1', d.error || '失败'); return; }
-    currentFacts = d.facts;
-    const names = {verified:'已核实', unverified:'待确认', exaggerated:'疑似夸大'};
-    document.getElementById('facts').innerHTML = d.facts.map((f, i) => {
-      const v = f.verdict || 'unverified';
-      return `<div class="fact ${v}"><b>事实卡 ${i+1}</b>：${escapeHtml(f.claim)}<span class="badge ${v}">${names[v]||v}</span><br><span style="color:#5C534A;font-size:12px">证据：${escapeHtml(f.evidence||'（需补充证据）')}</span></div>`;
-    }).join('');
-    if (d.confirm_questions && d.confirm_questions.length) {
-      document.getElementById('confirmQ').classList.remove('hidden');
-      document.getElementById('confirmQ').innerHTML = '<b>需要你确认：</b><br>' + d.confirm_questions.map(q => '· ' + escapeHtml(q.question)).join('<br>');
-    }
-    showStep(2);
-  } catch(e) { setErr('err1', '请求失败：' + e.message); }
-  finally { if (btn) btn.disabled = false; }
-}
-
-async function doMatch() {
-  setErr('err1', '');
-  const jdText = document.getElementById('target_role').value;
-  const skills = document.getElementById('skills').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-  try {
-    const r = await fetch('/api/match', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
-      jd_title: jdText.split(/[（(\n]/)[0].slice(0, 40), jd_text: jdText,
-      skills: skills, experience: currentFacts.map(f => ({summary: f.claim})), languages: [], career_goals: []
-    })});
-    const d = await r.json();
-    matchResult = d.result;
-    const el = document.getElementById('matchResult');
-    if (d.result.scored === false) {
-      el.innerHTML = `<div class="verdict" style="color:#c0392b">⚠️ 前置门未通过：${escapeHtml(d.result.reason||'')}</div>`;
-    } else {
-      const s = d.result.scores;
-      const names = {technical:'技术技能', experience:'经验匹配', behavioral:'行为文化', alignment:'职业对齐'};
-      const loc = s.location && s.location.verdict ? s.location.verdict : '';
-      el.innerHTML = `
-        <div class="verdict">总分 ${d.result.total} —— ${escapeHtml(d.result.verdict)}（地点：${escapeHtml(loc)||'—'}）</div>
-        <div class="score-grid">
-          ${Object.entries(names).map(([k, lbl]) => `<div class="score-item"><div class="num">${s[k]??'—'}</div><div class="lbl">${lbl}</div></div>`).join('')}
-        </div>
-        <div style="margin-top:10px;font-size:13px">
-          <b>匹配项：</b>${(d.result.scores.gaps||[]).length === 0 ? '<span class="match-chip">核心技能全覆盖</span>' : '技能匹配见缺失项'} <br>
-          <b>缺失项：</b>${(d.result.gaps||[]).map(g => `<span class="gap-chip">${escapeHtml(g)}</span>`).join('') || '<span class="match-chip">无明显缺失</span>'}
-        </div>`;
-    }
-    showStep(3);
-    // 低分触发改进面板
-    const improvePanel = document.getElementById('improvePanel');
-    if (improvePanel && d.result.scored !== false && (d.result.total ?? 100) < 55) {
-      improvePanel.classList.remove('hidden');
-    } else if (improvePanel) {
-      improvePanel.classList.add('hidden');
-    }
-  } catch(e) { setErr('err1', '匹配请求失败：' + e.message); }
-}
-
-// ═══ 改进建议：状态 + 逻辑 ═══
-let originalFacts = null;
-let suggestions = [];
-let appliedMap = {};  // sug_id -> true
-
-async function doImprove() {
-  setErr('err1', '');
-  const jdText = document.getElementById('target_role').value;
-  const skills = document.getElementById('skills').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-  const btn = document.getElementById('improveBtn');
-  btn.disabled = true; btn.textContent = '生成中…';
-  try {
-    const r = await fetch('/api/improve', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
-      facts: currentFacts, skills: skills,
-      jd_title: jdText.split(/[（(\n]/)[0].slice(0, 40), jd_text: jdText,
-    })});
-    const d = await r.json();
-    if (!d.ok) { setErr('err1', d.error || '生成失败'); return; }
-    suggestions = d.suggestions || [];
-    appliedMap = {};
-    if (originalFacts === null) originalFacts = JSON.parse(JSON.stringify(currentFacts));
-    renderSuggestions();
-    document.getElementById('improveActions').classList.remove('hidden');
-  } catch(e) { setErr('err1', '改进请求失败：' + e.message); }
-  finally { btn.disabled = false; btn.textContent = '重新生成建议'; }
-}
-
-function renderSuggestions() {
-  const dimNames = {technical:'技术技能', experience:'经验匹配', behavioral:'行为文化', alignment:'职业对齐'};
-  document.getElementById('improveList').innerHTML = suggestions.map(s => {
-    const applied = appliedMap[s.id];
-    const isRewrite = s.type === 'rewrite';
-    return `<div class="sug-card ${applied?'applied':''}">
-      <div class="sug-head">
-        <span class="sug-dim">${escapeHtml(dimNames[s.dimension]||s.dimension||'')}</span>
-        <span class="sug-type ${s.type}">${isRewrite?'改写':'缺失项'}</span>
-      </div>
-      <div class="sug-reason">${escapeHtml(s.reason||'')}</div>
-      ${s.target_text ? `<div class="sug-orig">原文：${escapeHtml(s.target_text)}</div>` : ''}
-      ${isRewrite && s.rewritten ? `<div class="sug-new">改写：${escapeHtml(s.rewritten)}</div>` : ''}
-      ${s.action ? `<div class="sug-action">${escapeHtml(s.action)}</div>` : ''}
-      <div class="sug-btns">
-        ${isRewrite && s.rewritten ? `<button class="secondary" onclick="applySug('${s.id}')" ${applied?'disabled':''}>${applied?'已应用':'应用此建议'}</button>` : ''}
-        ${!isRewrite ? '<span class="sug-note">需补充真实经历，不自动编造</span>' : ''}
-      </div>
+function renderCard(st){
+  const body = document.getElementById('cardBody');
+  body.innerHTML = `<div class="hint">${esc(st.hint||'')}</div>` + `<div class="field-grid">` + (st.fields||[]).map(f=>{
+    const v = (state[st.id]||{})[f.key] || '';
+    const stt = (filled[st.id]||{})[f.key] || 'empty';
+    const cls = stt==='filled'?'filled':(stt==='partial'?'partial':'');
+    const tag = {text:'文本',select:'枚举',multi:'多选',number:'数值',date_range:'日期',long:'长文本'}[f.type]||f.type;
+    const val = v ? v : `<span class="placeholder">${esc(f.placeholder||'点击填写')}</span>`;
+    return `<div class="field ${cls}" onclick="fillField('${st.id}','${f.key}')">
+      <div class="f-label">${esc(f.label)}${f.required?'<span style="color:var(--danger)">*</span>':''}<span class="tag">${tag}</span></div>
+      <div class="f-value">${val}</div>
     </div>`;
-  }).join('');
+  }).join('') + `</div>`;
+  updateProgress(st);
 }
 
-function applySug(sugId) {
-  const s = suggestions.find(x => x.id === sugId);
-  if (!s || s.type !== 'rewrite' || s.rewritten == null) return;
-  const idx = s.target_index;
-  if (typeof idx !== 'number' || !currentFacts[idx]) return;
-  currentFacts[idx].claim = s.rewritten;
-  appliedMap[sugId] = true;
-  renderSuggestions();
+function updateProgress(st){
+  const total = st.fields.length;
+  const done = (st.fields||[]).filter(f=>(filled[st.id]||{})[f.key]==='filled').length;
+  document.getElementById('cardProgress').textContent = `${done}/${total} 已收集`;
+  const dot = document.getElementById('dot-'+st.id);
+  if(dot){ dot.className='dot '+(done===total?'done':(done>0?'partial':'')); }
 }
 
-function undoAll() {
-  if (originalFacts) currentFacts = JSON.parse(JSON.stringify(originalFacts));
-  appliedMap = {};
-  renderSuggestions();
+function fillField(stid, key){
+  const st = findStage(stid);
+  const f = st.fields.find(x=>x.key===key);
+  let val;
+  if(f.type==='select' && f.options){
+    val = prompt(`${f.label}\n可选：${f.options.join(' / ')}`, (state[stid]||{})[key]||'');
+  }else{
+    val = prompt(`${f.label}${f.placeholder?'\n提示：'+f.placeholder:''}`, (state[stid]||{})[key]||'');
+  }
+  if(val===null) return;
+  setField(stid, key, val.trim(), 'filled');
+  addMsg('user', val.trim());
+  addMsg('ai', `已记录「${f.label}」：${val.trim()}。`);
+  askNext(st);
 }
 
-async function reScore() {
-  const jdText = document.getElementById('target_role').value;
-  const skills = document.getElementById('skills').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-  const r = await fetch('/api/match', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
-    jd_title: jdText.split(/[（(\n]/)[0].slice(0, 40), jd_text: jdText,
-    skills: skills, experience: currentFacts.map(f => ({summary: f.claim})), languages: [], career_goals: []
-  })});
-  const d = await r.json();
-  const oldTotal = matchResult ? matchResult.total : null;
-  const newTotal = d.result.total;
-  matchResult = d.result;
-  const delta = (oldTotal !== null && d.result.scored !== false) ? `（${oldTotal} → ${newTotal}${newTotal>=oldTotal?'，+':''}${newTotal-oldTotal}）` : '';
-  document.getElementById('matchResult').insertAdjacentHTML('afterbegin',
-    `<div class="verdict" style="color:#27ae60">提升效果：${oldTotal} → ${newTotal}${delta && ''}，${escapeHtml(d.result.verdict||'')}</div>`);
+function setField(stid, key, val, status){
+  if(!state[stid]) state[stid]={};
+  if(!filled[stid]) filled[stid]={};
+  state[stid][key]=val;
+  filled[stid][key]=status||(val?'filled':'empty');
+  const st=findStage(stid);
+  renderCard(st); renderSummary();
 }
 
-async function doVersions() {
-  const role = document.getElementById('target_role').value.split(/[（(\n]/)[0].trim();
-  const content = currentFacts.map(f => f.claim).join('；');
-  try {
-    const r = await fetch('/api/versions', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content: content, target: role})});
-    const d = await r.json();
-    const v = d.versions;
-    const cards = [
-      {key:'safe', name:'稳妥版', desc:'保守如实，绝不夸大'},
-      {key:'professional', name:'专业版', desc:'行业术语，规范表达'},
-      {key:'competitive', name:'高竞争力版', desc:'量化成果，冲击力表达'},
-    ];
-    document.getElementById('verContainer').innerHTML = cards.map(c => `
-      <div class="ver-card ${c.key===chosenVersion?'selected':''}" data-key="${c.key}" onclick="pickVersion('${c.key}')">
-        <h3>${c.name} <span style="font-size:11px;color:#5C534A">${c.desc}</span></h3>
-        <p>${escapeHtml(v[c.key]||'')}</p>
-      </div>`).join('');
-    pickVersion(chosenVersion);
-    showStep(4);
-  } catch(e) { setErr('err1', '生成请求失败：' + e.message); }
+function send(){
+  const input=document.getElementById('input');
+  const text=input.value.trim(); if(!text) return;
+  input.value='';
+  addMsg('user', text);
+  if(currentStage){
+    const st=findStage(currentStage);
+    const f=(st.fields||[]).find(x=>!(filled[currentStage]||{})[x.key]||(filled[currentStage]||{})[x.key]==='empty');
+    if(f){ setField(currentStage, f.key, text, 'filled'); addMsg('ai',`已记录「${f.label}」：${text}。`); }
+    else{ addMsg('ai',`「${st.label}」已收集完整，可切换下一阶段或点击「生成简历」。`); }
+    askNext(st);
+  }else{ addMsg('ai','请先从左侧选择一个场景，或直接上传已有简历。'); }
 }
 
-function pickVersion(key) {
-  chosenVersion = key;
-  document.querySelectorAll('.ver-card').forEach(el => el.classList.toggle('selected', el.dataset.key === key));
-  // 用选定版本的文本填充可编辑结果区
-  fetch('/api/versions', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
-    content: currentFacts.map(f => f.claim).join('；'),
-    target: document.getElementById('target_role').value.split(/[（(\n]/)[0].trim()})})
-    .then(r => r.json()).then(d => {
-      const role = document.getElementById('target_role').value.split(/[（(\n]/)[0].trim();
-      const v = d.versions;
-      document.getElementById('result').textContent = v[key] + '\n\n（目标岗位：' + role + '）';
-    });
+function askNext(st){
+  const empty=(st.fields||[]).filter(f=>!(filled[st.id]||{})[f.key]||(filled[st.id]||{})[f.key]==='empty');
+  if(empty.length>0){
+    const f=empty[0];
+    let chips='';
+    if((f.type==='select'||f.type==='multi') && f.options){
+      chips=`<div class="chips">${f.options.map(o=>`<span class="chip" onclick="pickChip('${st.id}','${f.key}','${esc(o)}')">${esc(o)}</span>`).join('')}</div>`;
+    }
+    const hint=f.placeholder?`（${f.placeholder}）`:'';
+    addMsg('ai',`下一个「${f.label}」${hint}：`, chips);
+  }else{
+    const done=(st.fields||[]).filter(f=>(filled[st.id]||{})[f.key]==='filled').length;
+    addMsg('ai',`✅「${st.label}」已收集完整（${done} 项）。可切换下一阶段，或点击右上角「生成简历」。`);
+  }
 }
 
-async function doATS() {
-  const resumeText = document.getElementById('result').textContent;
-  try {
-    const r = await fetch('/api/ats', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({resume_text: resumeText})});
-    const d = await r.json();
-    const res = d.result || {};
-    const rate = res.pass_rate ?? res.score ?? null;
-    const cls = rate === null ? '' : (rate >= 80 ? 'ats-pass' : (rate >= 50 ? 'ats-mid' : 'ats-fail'));
-    document.getElementById('atsResult').innerHTML = `
-      <div class="ats-score ${cls}">${rate===null?'—':rate}</div>
-      <div style="font-size:13px;color:#5C534A;margin:6px 0">ATS 通过率评分（≥80 优 / 50-79 中 / &lt;50 需优化）</div>
-      <div style="font-size:13px">${(res.issues||[]).map(i => '⚠️ ' + escapeHtml(typeof i === 'string' ? i : (i.message||JSON.stringify(i)))).join('<br>') || '✅ 未发现明显 ATS 问题'}</div>`;
-    showStep(5);
-  } catch(e) { setErr('err6', 'ATS 请求失败：' + e.message); }
+function pickChip(stid, key, val){
+  const st=findStage(stid);
+  const f=st.fields.find(x=>x.key===key);
+  if(f.type==='multi'){
+    const cur=(state[stid]||{})[key]||'';
+    const arr=cur?cur.split('、'):[];
+    if(arr.includes(val)){ arr.splice(arr.indexOf(val),1); }
+    else{ arr.push(val); }
+    setField(stid, key, arr.join('、'), arr.length?'filled':'empty');
+    addMsg('user', val);
+    if(arr.length){ addMsg('ai',`已记录「${f.label}」：${arr.join('、')}（可继续点选多个）。`); }
+    renderCard(st);
+  }else{
+    setField(stid, key, val, 'filled');
+    addMsg('user', val);
+    addMsg('ai',`已记录「${f.label}」：${val}。`);
+    askNext(st);
+  }
 }
 
-function genBody() {
-  const role = document.getElementById('target_role').value.split(/[（(\n]/)[0].trim();
-  return { experiences: currentFacts, target_role: role, resume_text: document.getElementById('result').textContent };
+function renderSummary(){
+  const summary=document.getElementById('summary');
+  let totalFields=0, filledFields=0, groups='';
+  for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]){
+    const t=st.fields.length;
+    const done=(st.fields||[]).filter(f=>(filled[st.id]||{})[f.key]==='filled').length;
+    totalFields+=t; filledFields+=done;
+    const items=(st.fields||[]).map(f=>{
+      const v=(state[st.id]||{})[f.key]||'';
+      return `<div class="s-item"><span>${esc(f.label)}</span><span class="v">${v?esc(v):'—'}</span></div>`;
+    }).join('');
+    groups+=`<div class="s-group"><div class="g-name"><span>${esc(st.label)}</span><span class="st">${done}/${t}</span></div>${items}</div>`;
+  }
+  const pct=totalFields?Math.round(filledFields/totalFields*100):0;
+  summary.innerHTML=`<div class="s-head">信息汇总</div>
+    <div class="ring"><span class="ring-num">${pct}%</span><div class="ring-bar"><div class="ring-fill" style="width:${pct}%"></div></div></div>
+    ${groups}
+    <div class="cta">
+      <button class="btn" onclick="generateResume()">生成简历</button>
+      <button class="btn ghost" onclick="downloadPDF()">导出 PDF</button>
+      <button class="btn ghost" onclick="downloadWord()">导出 Word</button>
+    </div>`;
 }
 
-async function downloadHTML() {
-  const body = genBody();
-  const r = await fetch('/api/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'html'})});
-  const d = await r.json();
-  if (!d.ok) { setErr('err6', d.error || '失败'); return; }
-  const blob = new Blob([d.resume], {type:'text/html'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.html'; a.click();
+function generateResume(){
+  const lines=[];
+  for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]){
+    const vals=(st.fields||[]).filter(f=>(state[st.id]||{})[f.key]).map(f=>`${f.label}：${(state[st.id]||{})[f.key]}`);
+    if(vals.length){ lines.push(`### ${st.label}`); lines.push(vals.join('；')); }
+  }
+  window._resumeText=lines.join('\n');
+  addMsg('ai',`已汇总完整信息（${lines.length} 行）。可导出 PDF（应用还原排版）或继续补充。`);
 }
 
-async function downloadWord() {
-  const body = genBody();
-  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'docx'})});
-  if (!r.ok) { setErr('err6', 'Word 导出失败'); return; }
-  const blob = await r.blob();
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.docx'; a.click();
+async function uploadResume(file){
+  if(!file) return;
+  const ext=(file.name.split('.').pop()||'').toLowerCase();
+  const map={docx:'/api/import-docx',pdf:'/api/import-pdf',xlsx:'/api/import-xlsx',xlsm:'/api/import-xlsx',png:'/api/import-image',jpg:'/api/import-image',jpeg:'/api/import-image',webp:'/api/import-image',bmp:'/api/import-image'};
+  const ep=map[ext]; if(!ep){document.getElementById('uploadMsg').textContent='不支持的类型';return;}
+  const fd=new FormData(); fd.append('file',file);
+  document.getElementById('uploadMsg').textContent='识别中…';
+  try{
+    const r=await fetch(ep,{method:'POST',body:fd});
+    const d=await r.json();
+    if(!d.ok){document.getElementById('uploadMsg').textContent=d.error||'失败';return;}
+    importedCss=d.css;
+    document.getElementById('uploadMsg').textContent='✅ 已还原排版';
+    addMsg('ai',`已识别你的简历（${d.meta.paragraphs} 段），排版样式已保存。可继续对话补充，或直接导出。`);
+  }catch(e){document.getElementById('uploadMsg').textContent='上传失败';}
 }
 
-async function downloadPDF() {
-  const body = genBody();
-  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'pdf', template: chosenTemplate, custom_css: importedCss || undefined})});
-  if (!r.ok) { setErr('err6', 'PDF 导出失败'); return; }
-  const blob = await r.blob();
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.pdf'; a.click();
+async function downloadPDF(){
+  const r=await fetch('/api/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({experiences:[],target_role:'',resume_text:window._resumeText||'',format:'pdf',template:'classic',custom_css:importedCss||undefined})});
+  if(!r.ok){alert('PDF 导出失败（需 Chrome/Playwright）');return;}
+  const blob=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='我的简历.pdf'; a.click();
+}
+async function downloadWord(){
+  const r=await fetch('/api/export',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({experiences:[],target_role:'',resume_text:window._resumeText||'',format:'docx'})});
+  if(!r.ok){alert('Word 导出失败');return;}
+  const blob=await r.blob(); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='我的简历.docx'; a.click();
 }
 
-function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toggleCard(){document.getElementById('cardDock').classList.toggle('collapsed');}
+function addMsg(role,text,chipsHtml=''){
+  const list=document.getElementById('msgList');
+  const div=document.createElement('div');
+  div.className='msg '+role;
+  div.textContent=text;
+  if(chipsHtml){div.innerHTML=text.replace(/\n/g,'<br>')+chipsHtml;}
+  list.appendChild(div);
+  list.scrollTop=list.scrollHeight;
+}
+function stripHtml(h){const d=document.createElement('div');d.innerHTML=h;return d.textContent||'';}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 </script>
 </body>
 </html>

@@ -71,4 +71,4 @@ def test_generate_api_html(client):
 def test_index_page(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert "通用简历制作" in r.get_data(as_text=True)
+    assert "对话式简历制作" in r.get_data(as_text=True)
