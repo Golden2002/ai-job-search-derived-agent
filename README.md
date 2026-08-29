@@ -391,3 +391,34 @@ MIT
 |---|---|---|
 | **ai-job-search（上游原版）** | https://github.com/MadsLorentzen/ai-job-search | Claude Code 求职框架（setup/scrape/apply/rank/interview 工作流） |
 | **medical-resume-agent** | https://github.com/Golden2002/medical-resume-agent | 事实校验-经历拆解-定向表达方法论（产品化参考） |
+
+## 🧩 resume_product 内部接线（简历主基线）
+
+```
+resume_product（简历制作主基线，MCP 21 工具）
+┌────────────────────────────────────────────────┐
+│  core.py + executor.py + api.py（编排 + 统一入口） │
+└──────┬───────────────┬───────────────┬──────────┘
+       │               │               │
+       v               v               v
+┌───────────────┐ ┌───────────────┐ ┌───────────────┐
+│job_evaluation │ │  claim_gate   │ │ multi_version │
+│  五维评分      │ │  事实校验      │ │  三档表达      │
+└───────┬───────┘ └───────┬───────┘ └───────┬───────┘
+        └─────────┬────────┴─────────┬───────┘
+                  v                  v
+      render/（latex_compile + render_pdf + template_registry）
+                  │
+                  v
+     四格式导出（MD/HTML/Word/PDF）→ MCP 21 工具
+```
+
+## 🔌 可扩展性
+
+| 扩展点 | 方式 | 机制 |
+|---|---|---|
+| **简历模板** | `template_registry.register_template(...)` | 自定义模板（校验文件存在 + 格式合法） |
+| **职位门户** | `portal_search(portal_name, ...)` | 可扩展适配器架构 |
+| **角色包** | `list_role_packs()` | 目标方向角色包 |
+| **评分维度** | `job_evaluation.py` | 五维评分 + 中文 jieba 分词 |
+| **LLM 后端** | 注入 `chat_fn` | 规则兜底 + LLM 增强（STAR 量化） |

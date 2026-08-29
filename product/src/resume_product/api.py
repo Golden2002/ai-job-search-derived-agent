@@ -114,6 +114,51 @@ def create_app(config: dict | None = None) -> Flask:
         r = evaluate_fit(posting, profile)
         return jsonify({"ok": True, "result": r})
 
+    @app.route("/api/improve", methods=["POST"])
+    def improve():
+        """低分简历改进建议（rewrite 可应用 / gap 不编造）。"""
+        data = request.get_json(force=True) or {}
+        facts = data.get("facts", [])
+        posting = {
+            "title": data.get("jd_title", ""),
+            "description": data.get("jd_text", ""),
+            "location": data.get("location", ""),
+        }
+        profile = {
+            "skills": data.get("skills", []),
+            "experience": [{"summary": f.get("claim", "")} for f in facts],
+            "languages": data.get("languages", []),
+            "career_goals": data.get("career_goals", []),
+            "behavioral": data.get("behavioral", {}),
+        }
+        # 服务端内部重跑评估（不信任客户端分数）
+        evaluation = evaluate_fit(posting, profile)
+        if not evaluation.get("scored"):
+            return jsonify({"ok": False, "error": "前置门未通过，无法评分",
+                            "result": evaluation}), 400
+        # LLM 优先，失败降级规则兜底
+        from .improve import generate_improvements
+        from . import llm_client
+        degraded = False
+        try:
+            suggestions = generate_improvements(facts, evaluation, posting,
+                                                chat_fn=llm_client.chat)
+            degraded = not suggestions
+        except Exception:
+            suggestions = generate_improvements(facts, evaluation, posting,
+                                                chat_fn=None)
+            degraded = True
+        if not suggestions:
+            suggestions = generate_improvements(facts, evaluation, posting,
+                                                chat_fn=None)
+            degraded = True
+        return jsonify({
+            "ok": True,
+            "evaluation": evaluation,
+            "suggestions": suggestions,
+            "degraded": degraded,
+        })
+
     @app.route("/api/versions", methods=["POST"])
     def versions():
         """多版本输出：稳妥/专业/高竞争力横向对比。"""
@@ -198,6 +243,41 @@ def create_app(config: dict | None = None) -> Flask:
             return send_file(path, as_attachment=True, download_name=name,
                              mimetype=mimetype)
         return jsonify({"ok": False, "error": f"{fmt} 导出失败，未生成文件"}), 500
+
+    @app.route("/api/import-docx", methods=["POST"])
+    def import_docx():
+        """上传 Word 简历 → 解析排版 → 返回还原 CSS + HTML（完美还原原排版）。"""
+        if "file" not in request.files:
+            return jsonify({"ok": False, "error": "缺少 file 字段（multipart/form-data）"}), 400
+        f = request.files["file"]
+        if not f or not f.filename:
+            return jsonify({"ok": False, "error": "空文件名"}), 400
+        suffix = os.path.splitext(f.filename)[1].lower() or ".docx"
+        if suffix != ".docx":
+            return jsonify({"ok": False,
+                            "error": f"仅支持 .docx，收到 {suffix}"}), 400
+        import tempfile
+        tmp = os.path.join(tempfile.gettempdir(),
+                           f"resume_import_{os.urandom(4).hex()}.docx")
+        f.save(tmp)
+        try:
+            from .render.docx_import import import_docx_resume
+            r = import_docx_resume(tmp)
+        except ImportError:
+            return jsonify({"ok": False,
+                            "error": "python-docx 未安装（pip install resume-product[resume_extract]）"}), 500
+        except Exception as e:
+            return jsonify({"ok": False, "error": f"解析失败: {str(e)[:200]}"}), 500
+        finally:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        return jsonify({
+            "ok": True,
+            "html": r["html"],
+            "css": r["css"],
+            "meta": r["meta"],
+            "filename": f.filename,
+        })
 
     @app.route("/")
     def index():

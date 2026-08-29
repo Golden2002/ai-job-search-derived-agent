@@ -208,5 +208,18 @@ def execute(name: str, arguments: Optional[Dict[str, Any]] = None) -> str:
         except Exception as e:
             return json.dumps({"ok": False, "error": str(e)[:300]}, ensure_ascii=False)
 
+    if name == "import_resume_docx":
+        from .render.docx_import import import_docx_resume
+        try:
+            r = import_docx_resume(args.get("docx_path", ""))
+            return json.dumps({
+                "ok": True,
+                "html": r["html"],
+                "css": r["css"],
+                "meta": r["meta"],
+            }, ensure_ascii=False)
+        except Exception as e:
+            return json.dumps({"ok": False, "error": str(e)[:300]}, ensure_ascii=False)
+
     return json.dumps({"ok": False, "error": f"未知工具: {name}"},
                       ensure_ascii=False)

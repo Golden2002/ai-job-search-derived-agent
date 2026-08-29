@@ -60,6 +60,22 @@
   .tpl-preview .line { height: 3px; width: 80%; margin: 4px auto; border-radius: 2px; background: #d8d2c6; }
   .tpl-card h3 { font-size: 13px; margin-bottom: 2px; }
   .tpl-card .desc { font-size: 11px; color: #5C534A; }
+  .improve-panel { margin-top: 14px; border-top: 1px dashed #e2dccf; padding-top: 12px; }
+  .improve-head { display: flex; align-items: center; justify-content: space-between; font-size: 14px; font-weight: 600; }
+  .sug-card { border: 1px solid #e2dccf; border-radius: 10px; padding: 10px 12px; margin-top: 8px; background: #fff; }
+  .sug-card.applied { background: #E8EDFF; border-color: #4F6BFF; }
+  .sug-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+  .sug-dim { font-size: 11px; color: #3D55E8; font-weight: 600; }
+  .sug-type { font-size: 10px; padding: 1px 8px; border-radius: 10px; }
+  .sug-type.rewrite { background: #e3f6ec; color: #27ae60; }
+  .sug-type.gap { background: #fef4e2; color: #b9770e; }
+  .sug-reason { font-size: 12px; color: #5C534A; margin-bottom: 4px; }
+  .sug-orig { font-size: 12px; color: #8a8a8a; text-decoration: line-through; margin-bottom: 2px; }
+  .sug-new { font-size: 12px; color: #1F1B16; background: #F5F2EC; border-radius: 6px; padding: 4px 8px; margin-bottom: 2px; }
+  .sug-action { font-size: 11px; color: #5C534A; margin-bottom: 4px; }
+  .sug-note { font-size: 11px; color: #b9770e; }
+  .sug-btns { margin-top: 4px; }
+  .improve-actions { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -79,6 +95,12 @@
   <!-- ① 经历 + JD -->
   <div class="card" id="card1">
     <h2>你的经历描述（教育/实习/项目/技能——尽量具体，含量化数据）</h2>
+    <p style="font-size:13px;color:#5C534A;margin:0 0 8px">💡 已有简历？上传 Word 文档，自动还原排版（字体/字号/对齐/缩进/表格/分栏/图片）并在导出 PDF 时应用：</p>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <input type="file" id="resumeFile" accept=".docx">
+      <button class="secondary" onclick="uploadDocx()">上传并还原排版</button>
+    </div>
+    <div class="error" id="errUpload"></div>
     <textarea id="experience" placeholder="例：我在字节跳动实习，负责抖音推荐算法优化，通过 A/B 测试提升点击率 15%；主导了用户画像模块开发，覆盖 500 万用户。"></textarea>
     <label>目标岗位（输入完整 JD 更精准）</label>
     <input type="text" id="target_role" placeholder="例：算法工程师（要求 Python、机器学习、推荐系统……）">
@@ -101,6 +123,18 @@
   <div class="card hidden" id="card3">
     <h2>JD 匹配度评分（五维度）</h2>
     <div id="matchResult"></div>
+    <!-- 改进建议面板（低分触发） -->
+    <div class="improve-panel hidden" id="improvePanel">
+      <div class="improve-head">
+        <span>💡 低分改进建议</span>
+        <button class="secondary" onclick="doImprove()" id="improveBtn">生成针对性改进建议</button>
+      </div>
+      <div id="improveList"></div>
+      <div class="improve-actions hidden" id="improveActions">
+        <button class="secondary" onclick="reScore()">重新评分（查看提升效果）</button>
+        <button class="secondary" onclick="undoAll()">全部撤销</button>
+      </div>
+    </div>
     <button class="secondary" onclick="doVersions()">下一步：生成三版本</button>
   </div>
 
@@ -138,6 +172,35 @@ let matchResult = null;
 let chosenVersion = 'professional';
 let chosenTemplate = 'classic';
 let templatesLoaded = false;
+let importedCss = null;
+
+function stripHtml(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return d.textContent || '';
+}
+
+async function uploadDocx() {
+  setErr('errUpload', '');
+  const file = document.getElementById('resumeFile').files[0];
+  if (!file) { setErr('errUpload', '请先选择 .docx 文件'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch('/api/import-docx', {method: 'POST', body: fd});
+    const d = await r.json();
+    if (!d.ok) { setErr('errUpload', d.error || '上传失败'); return; }
+    importedCss = d.css;
+    const plain = stripHtml(d.html);
+    if (plain.trim()) {
+      document.getElementById('experience').value = plain.trim();
+    }
+    const m = d.meta || {};
+    setErr('errUpload', '✅ 已还原 ' + m.paragraphs + ' 段 / ' + m.tables + ' 表格 / '
+      + m.columns + ' 栏' + (m.images ? ' / ' + m.images + ' 图' : '')
+      + ' 的排版（导出 PDF 时应用还原 CSS）');
+  } catch (e) { setErr('errUpload', '上传失败：' + e.message); }
+}
 
 function showStep(n) {
   document.querySelectorAll('#steps .s').forEach(el => {
@@ -226,7 +289,95 @@ async function doMatch() {
         </div>`;
     }
     showStep(3);
+    // 低分触发改进面板
+    const improvePanel = document.getElementById('improvePanel');
+    if (improvePanel && d.result.scored !== false && (d.result.total ?? 100) < 55) {
+      improvePanel.classList.remove('hidden');
+    } else if (improvePanel) {
+      improvePanel.classList.add('hidden');
+    }
   } catch(e) { setErr('err1', '匹配请求失败：' + e.message); }
+}
+
+// ═══ 改进建议：状态 + 逻辑 ═══
+let originalFacts = null;
+let suggestions = [];
+let appliedMap = {};  // sug_id -> true
+
+async function doImprove() {
+  setErr('err1', '');
+  const jdText = document.getElementById('target_role').value;
+  const skills = document.getElementById('skills').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+  const btn = document.getElementById('improveBtn');
+  btn.disabled = true; btn.textContent = '生成中…';
+  try {
+    const r = await fetch('/api/improve', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+      facts: currentFacts, skills: skills,
+      jd_title: jdText.split(/[（(\n]/)[0].slice(0, 40), jd_text: jdText,
+    })});
+    const d = await r.json();
+    if (!d.ok) { setErr('err1', d.error || '生成失败'); return; }
+    suggestions = d.suggestions || [];
+    appliedMap = {};
+    if (originalFacts === null) originalFacts = JSON.parse(JSON.stringify(currentFacts));
+    renderSuggestions();
+    document.getElementById('improveActions').classList.remove('hidden');
+  } catch(e) { setErr('err1', '改进请求失败：' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '重新生成建议'; }
+}
+
+function renderSuggestions() {
+  const dimNames = {technical:'技术技能', experience:'经验匹配', behavioral:'行为文化', alignment:'职业对齐'};
+  document.getElementById('improveList').innerHTML = suggestions.map(s => {
+    const applied = appliedMap[s.id];
+    const isRewrite = s.type === 'rewrite';
+    return `<div class="sug-card ${applied?'applied':''}">
+      <div class="sug-head">
+        <span class="sug-dim">${escapeHtml(dimNames[s.dimension]||s.dimension||'')}</span>
+        <span class="sug-type ${s.type}">${isRewrite?'改写':'缺失项'}</span>
+      </div>
+      <div class="sug-reason">${escapeHtml(s.reason||'')}</div>
+      ${s.target_text ? `<div class="sug-orig">原文：${escapeHtml(s.target_text)}</div>` : ''}
+      ${isRewrite && s.rewritten ? `<div class="sug-new">改写：${escapeHtml(s.rewritten)}</div>` : ''}
+      ${s.action ? `<div class="sug-action">${escapeHtml(s.action)}</div>` : ''}
+      <div class="sug-btns">
+        ${isRewrite && s.rewritten ? `<button class="secondary" onclick="applySug('${s.id}')" ${applied?'disabled':''}>${applied?'已应用':'应用此建议'}</button>` : ''}
+        ${!isRewrite ? '<span class="sug-note">需补充真实经历，不自动编造</span>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function applySug(sugId) {
+  const s = suggestions.find(x => x.id === sugId);
+  if (!s || s.type !== 'rewrite' || s.rewritten == null) return;
+  const idx = s.target_index;
+  if (typeof idx !== 'number' || !currentFacts[idx]) return;
+  currentFacts[idx].claim = s.rewritten;
+  appliedMap[sugId] = true;
+  renderSuggestions();
+}
+
+function undoAll() {
+  if (originalFacts) currentFacts = JSON.parse(JSON.stringify(originalFacts));
+  appliedMap = {};
+  renderSuggestions();
+}
+
+async function reScore() {
+  const jdText = document.getElementById('target_role').value;
+  const skills = document.getElementById('skills').value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+  const r = await fetch('/api/match', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+    jd_title: jdText.split(/[（(\n]/)[0].slice(0, 40), jd_text: jdText,
+    skills: skills, experience: currentFacts.map(f => ({summary: f.claim})), languages: [], career_goals: []
+  })});
+  const d = await r.json();
+  const oldTotal = matchResult ? matchResult.total : null;
+  const newTotal = d.result.total;
+  matchResult = d.result;
+  const delta = (oldTotal !== null && d.result.scored !== false) ? `（${oldTotal} → ${newTotal}${newTotal>=oldTotal?'，+':''}${newTotal-oldTotal}）` : '';
+  document.getElementById('matchResult').insertAdjacentHTML('afterbegin',
+    `<div class="verdict" style="color:#27ae60">提升效果：${oldTotal} → ${newTotal}${delta && ''}，${escapeHtml(d.result.verdict||'')}</div>`);
 }
 
 async function doVersions() {
@@ -305,7 +456,7 @@ async function downloadWord() {
 
 async function downloadPDF() {
   const body = genBody();
-  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'pdf', template: chosenTemplate})});
+  const r = await fetch('/api/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...body, format:'pdf', template: chosenTemplate, custom_css: importedCss || undefined})});
   if (!r.ok) { setErr('err6', 'PDF 导出失败'); return; }
   const blob = await r.blob();
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '我的简历.pdf'; a.click();

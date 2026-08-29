@@ -2,6 +2,24 @@
 
 本文件记录本工具的更新路径：版本、改动模块、测试数、关联需求文档。
 
+## v1.8.0 (2026-08-29) — Word 简历上传 → 排版还原 CSS（用户核心优化点）
+
+**更新路径**：product/src/resume_product/render/docx_import.py（新增）+ executor.py + mcp_server.py + api.py + product/web/index.html + product/tests/test_docx_import.py
+
+- 新增 docx_import.py：上传 Word 简历 → python-docx 解析排版 → 生成定制 CSS，**完美、精准还原原文档排版**，覆盖复杂排版元素：
+  - 段落：字体（含 eastAsia 中文字体）/字号/加粗/斜体/下划线/颜色/对齐/首行缩进/左缩进/段前后间距/行距
+  - **表格**：行/列/单元格文本 → HTML `<table>`（按文档顺序与段落交错渲染）
+  - **分栏**：section 的 `w:cols` → CSS `column-count`（双栏简历还原）
+  - **图片**：inline shape → base64 data URI `<img>`（图形元素保留）
+  - **列表**：项目符号（List Bullet → `• `）/ 编号（List Number → `1. 2.` 递增，非 decimal 打断重置）
+  - **合并单元格**：`w:gridSpan` → `<td colspan>`（水平合并还原）
+  - **页眉页脚**：section header/footer → HTML 顶部/底部块（简历常见：页眉放姓名/联系方式）
+- `import_docx_resume(docx_path)` 一站式返回 `{html, css, meta}`；css 可作 `render_pdf.build_html` 的 `custom_css`
+- executor + MCP 22 工具 `import_resume_docx`；api.py 新增 `POST /api/import-docx`（multipart 上传）
+- 前端 index.html 第一步新增「上传 Word 简历」入口：上传 → 还原排版 → 导出 PDF 自动应用还原 CSS
+- 测试 +5（test_docx_import.py：段落排版/表格/分栏 + CSS 还原 + executor 接入）；图片提取实测通过
+- 依赖：python-docx（`resume_extract` 可选依赖，已声明于 pyproject.toml）
+
 ## v1.7.0 (2026-08-28) — LLM + 语言规范接入（网页端体验修复）
 
 **更新路径**：product/src/resume_product/{llm_client.py, core.py, api.py} + product/web/index.html + product/tests/test_llm_lang.py
