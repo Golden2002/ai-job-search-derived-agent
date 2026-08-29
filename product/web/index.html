@@ -85,6 +85,27 @@ body{font-family:var(--font);background:var(--bg-app);color:var(--ink-900);font-
 .summary .s-item{font-size:12px;color:var(--ink-500);padding:3px 0;display:flex;justify-content:space-between;gap:8px}
 .summary .s-item .v{color:var(--ink-900);text-align:right;word-break:break-all}
 .summary .cta{margin-top:auto;padding-top:16px;border-top:1px solid var(--ink-200);display:flex;flex-direction:column;gap:8px}
+
+/* ═══ 预览模态框 ═══ */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.4);display:none;z-index:100;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.modal-box{background:var(--surface);border-radius:var(--radius-lg);width:min(720px,92vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 12px 32px rgba(15,23,42,.2)}
+.modal-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--ink-200)}
+.modal-head h2{font-size:16px;margin:0}
+.modal-head .spacer{flex:1}
+.modal-head .close{cursor:pointer;color:var(--ink-500);font-size:20px;border:none;background:none}
+.tpl-switch{display:flex;gap:8px;padding:12px 20px;border-bottom:1px solid var(--ink-100)}
+.tpl-switch .tpl-btn{padding:6px 14px;border-radius:999px;border:1px solid var(--ink-200);cursor:pointer;font-size:13px;background:#fff}
+.tpl-switch .tpl-btn.active{background:var(--brand-50);border-color:var(--brand-500);color:var(--brand-700);font-weight:600}
+.preview-body{flex:1;overflow-y:auto;padding:20px 24px}
+.pv-resume{background:#fff;border:1px solid var(--ink-200);border-radius:var(--radius-md);padding:24px;font-family:'SimSun','Songti SC',serif;min-height:200px}
+.pv-resume h3{font-size:18px;margin:0 0 4px;text-align:center}
+.pv-resume .pv-sub{font-size:11px;color:var(--ink-500);text-align:center;margin-bottom:12px}
+.pv-resume .pv-sec{font-size:14px;font-weight:700;margin:12px 0 4px;border-bottom:1px solid var(--ink-200);padding-bottom:2px}
+.pv-resume .pv-line{font-size:12px;line-height:1.7;color:var(--ink-700)}
+.pv-modern .pv-sec{color:var(--brand-600);border-bottom-color:var(--brand-200)}
+.pv-minimal .pv-sec{font-weight:600;color:var(--ink-900);border-bottom:none}
+.pv-empty{color:var(--ink-400);text-align:center;padding:40px 0;font-size:13px}
 </style>
 </head>
 <body>
@@ -115,6 +136,23 @@ body{font-family:var(--font);background:var(--bg-app);color:var(--ink-900);font-
   <aside class="summary" id="summary"></aside>
 </div>
 
+<!-- 简历预览模态框 -->
+<div class="modal" id="previewModal" onclick="if(event.target===this)closePreview()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>简历预览</h2>
+      <span class="spacer"></span>
+      <button class="close" onclick="closePreview()">×</button>
+    </div>
+    <div class="tpl-switch">
+      <button class="tpl-btn active" data-tpl="classic" onclick="switchPreviewTpl('classic')">经典</button>
+      <button class="tpl-btn" data-tpl="modern" onclick="switchPreviewTpl('modern')">现代</button>
+      <button class="tpl-btn" data-tpl="minimal" onclick="switchPreviewTpl('minimal')">极简</button>
+    </div>
+    <div class="preview-body"><div class="pv-resume" id="previewBody"></div></div>
+  </div>
+</div>
+
 <script>
 let scenes = [];
 let state = {};     // {stageId: {fieldKey: value}}
@@ -138,7 +176,15 @@ function findStage(id){ for(const s of scenes) for(const ss of s.sub_scenes||[])
 
 function renderNav(){
   const nav = document.getElementById('nav');
-  nav.innerHTML = scenes.map(s => `
+  // 上传按钮只出现一次（顶部，不在每个场景下重复）
+  nav.innerHTML = `
+    <div class="upload">
+      <label>💡 已有简历？上传 Word/PDF/Excel/截图：</label>
+      <input type="file" accept=".docx,.pdf,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp,.bmp" onchange="uploadResume(this.files[0])">
+      <div id="uploadMsg" style="font-size:11px;color:var(--success-600);margin-top:4px"></div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--ink-200);margin:10px 0">
+  ` + scenes.map(s => `
     <div class="scene-head" onclick="toggleScene('${s.id}')">${esc(s.label)}<span class="count">${(s.sub_scenes||[]).length} 子场景</span></div>
     <div id="scene-${s.id}">
       ${(s.sub_scenes||[]).map(ss => `
@@ -148,11 +194,6 @@ function renderNav(){
             <span class="dot" id="dot-${st.id}"></span>${esc(st.label)}
           </div>`).join('')}
       `).join('')}
-    </div>
-    <div class="upload">
-      <label>💡 已有简历？上传 Word/PDF/Excel/截图：</label>
-      <input type="file" accept=".docx,.pdf,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp,.bmp" onchange="uploadResume(this.files[0])">
-      <div id="uploadMsg" style="font-size:11px;color:var(--success-600);margin-top:4px"></div>
     </div>
   `).join('');
 }
@@ -170,7 +211,8 @@ function selectStage(sid, stid){
   document.getElementById('cardStageName').textContent = st.label;
   renderCard(st);
   renderSummary();
-  addMsg('ai', `开始收集「${st.label}」。${st.hint||''}`);
+  // 主动开场引导：AI 直接提问，提示灵活流程（不必逐项填完）
+  addMsg('ai', `我是简历助手，帮你收集「${st.label}」。${st.hint||''}\n你可以直接告诉我、点下方卡片填写，或对没有的经历回复「跳过」；随时点右上角「生成简历」预览，不必逐项填完。`);
   askNext(st);
 }
 
@@ -251,6 +293,12 @@ async function send(){
 }
 
 function _fallbackAsk(st, text){
+  // 跳过语义：用户回复"跳过/没有/无"→ 标记为已处理（可选字段），继续
+  if(/^(跳过|略过|没有|无|没有相关经历|pass|skip|none|n\/a)$/i.test(text.trim())){
+    const f=(st.fields||[]).find(x=>!(filled[currentStage]||{})[x.key]||(filled[currentStage]||{})[x.key]==='empty');
+    if(f && !f.required){ setField(currentStage, f.key, '', 'filled'); addMsg('ai',`好的，已跳过「${f.label}」。`); askNext(st); return; }
+    if(f && f.required){ addMsg('ai',`「${f.label}」是必填项，请简单提供一下（如没有可填「无」以外的具体说明）。`); return; }
+  }
   const f=(st.fields||[]).find(x=>!(filled[currentStage]||{})[x.key]||(filled[currentStage]||{})[x.key]==='empty');
   if(f){ setField(currentStage, f.key, text, 'filled'); addMsg('ai',`已记录「${f.label}」：${text}。`); askNext(st); }
   else{ addMsg('ai',`「${st.label}」已收集完整，可切换下一阶段或点击「生成简历」。`); }
@@ -265,7 +313,7 @@ function askNext(st){
       chips=`<div class="chips">${f.options.map(o=>`<span class="chip" onclick="pickChip('${st.id}','${f.key}','${esc(o)}')">${esc(o)}</span>`).join('')}</div>`;
     }
     const hint=f.placeholder?`（${f.placeholder}）`:'';
-    addMsg('ai',`下一个「${f.label}」${hint}：`, chips);
+    addMsg('ai',`下一个「${f.label}」${hint}${f.required?'（必填）':'（无此经历可回复「跳过」）'}：`, chips);
   }else{
     const done=(st.fields||[]).filter(f=>(filled[st.id]||{})[f.key]==='filled').length;
     addMsg('ai',`✅「${st.label}」已收集完整（${done} 项）。可切换下一阶段，或点击右上角「生成简历」。`);
@@ -316,15 +364,41 @@ function renderSummary(){
     </div>`;
 }
 
+let previewTpl = 'classic';
+
 function generateResume(){
-  const lines=[];
+  // 汇总为结构化数据（供预览 + 导出）
+  const sections=[];
   for(const s of scenes) for(const ss of s.sub_scenes||[]) for(const st of ss.stages||[]){
     const vals=(st.fields||[]).filter(f=>(state[st.id]||{})[f.key]).map(f=>`${f.label}：${(state[st.id]||{})[f.key]}`);
-    if(vals.length){ lines.push(`### ${st.label}`); lines.push(vals.join('；')); }
+    if(vals.length){ sections.push({title:st.label, lines:vals}); }
   }
-  window._resumeText=lines.join('\n');
-  addMsg('ai',`已汇总完整信息（${lines.length} 行）。可导出 PDF（应用还原排版）或继续补充。`);
+  window._sections=sections;
+  window._resumeText=sections.map(s=>`### ${s.title}\n`+s.lines.join('；')).join('\n');
+  renderPreview();
+  document.getElementById('previewModal').classList.add('open');
 }
+
+function renderPreview(){
+  const body=document.getElementById('previewBody');
+  body.className='pv-resume pv-'+previewTpl;
+  const secs=window._sections||[];
+  if(!secs.length){ body.innerHTML='<div class="pv-empty">还没有收集到信息。先选左侧场景、通过对话或卡片填写，再点「生成简历」预览。</div>'; return; }
+  const name=(state.basic||{}).name || '';
+  const contact=(state.basic||{}).contact || '';
+  body.innerHTML=`
+    ${name?`<h3>${esc(name)}</h3>`:''}
+    ${contact?`<div class="pv-sub">${esc(contact)}</div>`:''}
+    ${secs.map(s=>`<div class="pv-sec">${esc(s.title)}</div>${s.lines.map(l=>`<div class="pv-line">${esc(l)}</div>`).join('')}`).join('')}`;
+}
+
+function switchPreviewTpl(tpl){
+  previewTpl=tpl;
+  document.querySelectorAll('.tpl-btn').forEach(b=>b.classList.toggle('active', b.dataset.tpl===tpl));
+  renderPreview();
+}
+
+function closePreview(){ document.getElementById('previewModal').classList.remove('open'); }
 
 async function uploadResume(file){
   if(!file) return;
